@@ -3,6 +3,7 @@ package nl.knaw.dans.bag.fixtures
 import better.files.File
 import nl.knaw.dans.bag.{ IBag, v0 }
 
+import scala.language.implicitConversions
 import scala.util.{ Failure, Success, Try }
 
 trait TestBags extends FileSystemSupport {
