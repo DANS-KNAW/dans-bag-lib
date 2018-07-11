@@ -10,6 +10,7 @@ import gov.loc.repository.bagit.domain.{ Version => LocVersion }
 import nl.knaw.dans.bag.ChecksumAlgorithm.ChecksumAlgorithm
 import org.joda.time.DateTime
 
+import scala.language.implicitConversions
 import scala.util.Try
 
 trait IBag {
