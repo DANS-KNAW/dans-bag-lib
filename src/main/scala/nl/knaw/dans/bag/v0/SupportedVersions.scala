@@ -2,7 +2,7 @@ package nl.knaw.dans.bag.v0
 
 import gov.loc.repository.bagit.domain.Version
 
-object Versions {
+object SupportedVersions {
 
   val Version_0_93 = new Version(0, 93)
   val Version_0_95 = new Version(0, 95)

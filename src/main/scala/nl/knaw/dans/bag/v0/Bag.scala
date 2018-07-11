@@ -12,7 +12,8 @@ import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, Manifest => Loc
 import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.util.PathUtils
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
-import nl.knaw.dans.bag.v0.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
+import nl.knaw.dans.bag.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, FetchItem, IBag, RelativePath, betterFileToPath }
 import org.joda.time.DateTime
 import org.joda.time.format.{ DateTimeFormatter, ISODateTimeFormat }
 
@@ -22,7 +23,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.util.{ Failure, Success, Try }
 
-class Bag private(private[v0] val locBag: LocBag) {
+class Bag private(private[v0] val locBag: LocBag) extends IBag {
 
   override def equals(obj: Any): Boolean = locBag.equals(obj)
 
@@ -33,17 +34,17 @@ class Bag private(private[v0] val locBag: LocBag) {
   /**
    * The base directory of the bag this object represents
    */
-  val baseDir: File = locBag.getRootDir
+  override val baseDir: File = locBag.getRootDir
 
   /**
    * The data directory of the bag this object represents
    */
-  val data: File = baseDir / "data"
+  override val data: File = baseDir / "data"
 
   /**
    * @return the bag's `gov.loc.repository.bagit.domain.Version`, which is stored in `bagit.txt`
    */
-  def bagitVersion: Version = locBag.getVersion
+  override def bagitVersion: Version = locBag.getVersion
 
   /**
    * Change the bag's `gov.loc.repository.bagit.domain.Version` to a new `Version`.
@@ -52,7 +53,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param version the new `Version` of the bag
    * @return this bag, with the new `Version`
    */
-  def withBagitVersion(version: Version): Bag = {
+  override def withBagitVersion(version: Version): Bag = {
     // TODO what happens when the version changes? Should we change the layout of the bag?
     locBag.setVersion(version)
     this
@@ -66,14 +67,14 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param minor minor part of the version number
    * @return this bag, with a new `Version` comprised of the `major` and `minor` inputs
    */
-  def withBagitVersion(major: Int, minor: Int): Bag = {
+  override def withBagitVersion(major: Int, minor: Int): Bag = {
     withBagitVersion(new Version(major, minor))
   }
 
   /**
    * @return the bag's `java.nio.charset.Charset`, which is stored in `bagit.txt`
    */
-  def fileEncoding: Charset = locBag.getFileEncoding
+  override def fileEncoding: Charset = locBag.getFileEncoding
 
   /**
    * Change the bag's `java.nio.charset.Charset` to a new `Charset`.
@@ -82,7 +83,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param charset the new `Charset` of the bag
    * @return this bag, with the new `Charset`
    */
-  def withFileEncoding(charset: Charset): Bag = {
+  override def withFileEncoding(charset: Charset): Bag = {
     locBag.setFileEncoding(charset)
     this
   }
@@ -93,7 +94,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return a Map containing all entries of `bag/bag-info.txt`
    */
-  def bagInfo: Map[String, Seq[String]] = {
+  override def bagInfo: Map[String, Seq[String]] = {
     locBag.getMetadata.getAll.asScala
       .groupBy(_.getKey)
       .map { case (key, tuple) => key -> tuple.map(_.getValue) }
@@ -107,7 +108,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param value the value of the new entry
    * @return this bag, with the new entry added
    */
-  def addBagInfo(key: String, value: String): Bag = {
+  override def addBagInfo(key: String, value: String): Bag = {
     locBag.getMetadata.add(key, value)
 
     this
@@ -120,7 +121,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param key the key to be removed
    * @return this bag, without the removed entries
    */
-  def removeBagInfo(key: String): Bag = {
+  override def removeBagInfo(key: String): Bag = {
     locBag.getMetadata.remove(key)
 
     this
@@ -133,7 +134,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return the `DateTime` object found in the 'Created' key in `bag-info.txt`
    */
-  def created: Try[Option[DateTime]] = Try {
+  override def created: Try[Option[DateTime]] = Try {
     Option(locBag.getMetadata.get(Bag.CREATED_KEY))
       .flatMap(_.asScala.headOption)
       .map(DateTime.parse(_, Bag.dateTimeFormatter))
@@ -148,7 +149,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @return this bag, with the new value for 'Created' in `bag-info.txt`
    */
   // TODO when should this be called? On creating new bag? On save (probably not)?
-  def withCreated(created: DateTime = DateTime.now()): Bag = {
+  override def withCreated(created: DateTime = DateTime.now()): Bag = {
     withoutCreated()
       .locBag.getMetadata.add(Bag.CREATED_KEY, created.toString(Bag.dateTimeFormatter))
 
@@ -161,7 +162,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return this bag, without the removed entry
    */
-  def withoutCreated(): Bag = {
+  override def withoutCreated(): Bag = {
     removeBagInfo(Bag.CREATED_KEY)
   }
 
@@ -173,7 +174,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return the `URI` object found in the 'Is-Version-Of' key in `bag-info.txt`
    */
-  def isVersionOf: Try[Option[URI]] = {
+  override def isVersionOf: Try[Option[URI]] = {
     Option(locBag.getMetadata.get(Bag.IS_VERSION_OF_KEY))
       .flatMap(_.asScala.headOption)
       .map {
@@ -194,7 +195,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param uuid the `UUID` of the previous revision of this bag
    * @return this bag, with the new value for 'Is-Version-Of' in `bag-info.txt`
    */
-  def withIsVersionOf(uuid: UUID): Bag = {
+  override def withIsVersionOf(uuid: UUID): Bag = {
     val uri = new URI(s"urn:uuid:$uuid")
     withoutIsVersionOf()
       .locBag.getMetadata.add(Bag.IS_VERSION_OF_KEY, uri.toString)
@@ -208,7 +209,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return this bag, without the removed entry
    */
-  def withoutIsVersionOf(): Bag = {
+  override def withoutIsVersionOf(): Bag = {
     removeBagInfo(Bag.IS_VERSION_OF_KEY)
   }
 
@@ -217,11 +218,12 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return all entries listed in `fetch.txt`
    */
-  def fetchFiles: Seq[FetchItem] = locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  override def fetchFiles: Seq[FetchItem] = locBag.getItemsToFetch.asScala.map(
+    fetch => fetch: FetchItem)
 
   // TODO document
   // TODO this may cause latency, due to downloading of file. Wrapping in a Promise/Observable is recommended!
-  def addFetchFile(url: URL, length: Long, pathInData: RelativePath): Try[Bag] = Try {
+  override def addFetchFile(url: URL, length: Long, pathInData: RelativePath): Try[Bag] = Try {
     val destinationPath = pathInData(data)
 
     if (destinationPath.exists)
@@ -255,7 +257,7 @@ class Bag private(private[v0] val locBag: LocBag) {
   }
 
   // TODO document
-  def removeFetchByFile(pathInData: RelativePath): Try[Bag] = Try {
+  override def removeFetchByFile(pathInData: RelativePath): Try[Bag] = Try {
     val destinationPath = pathInData(data)
 
     fetchFiles.find(_.file == destinationPath)
@@ -264,14 +266,14 @@ class Bag private(private[v0] val locBag: LocBag) {
   }
 
   // TODO document
-  def removeFetchByURL(url: URL): Try[Bag] = Try {
+  override def removeFetchByURL(url: URL): Try[Bag] = Try {
     fetchFiles.find(_.url == url)
       .map(removeFetch)
       .getOrElse { throw new IllegalArgumentException(s"no such URL: $url") }
   }
 
   // TODO document
-  def removeFetch(item: FetchItem): Bag = {
+  override def removeFetch(item: FetchItem): Bag = {
     if (locBag.getItemsToFetch.remove(FetchItem.locDeconverter(item)))
       removeFileFromManifests(item.file, locBag.getPayLoadManifests, locBag.setPayLoadManifests)
 
@@ -290,7 +292,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return the set of algorithms used for calculating the payload's checksums
    */
-  def payloadManifestAlgorithms: Set[ChecksumAlgorithm] = algorithms(locBag.getPayLoadManifests)
+  override def payloadManifestAlgorithms: Set[ChecksumAlgorithm] = algorithms(locBag.getPayLoadManifests)
 
   /**
    * Add an algorithm to the bag that will be used for calculating the checksums of the payload files.
@@ -316,8 +318,8 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param updateManifest    indicates whether it should update (`true`) or add (`false`) the algorithm
    * @return this bag, with the new algorithm added
    */
-  def addPayloadManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm,
-                                  updateManifest: Boolean = false): Try[Bag] = Try {
+  override def addPayloadManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm,
+                                           updateManifest: Boolean = false): Try[Bag] = Try {
     addAlgorithm(checksumAlgorithm, updateManifest, includeFetchFiles = true)(
       locBag.getPayLoadManifests, data.listRecursively.filter(_.isRegularFile), fetchFiles)
 
@@ -339,7 +341,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param checksumAlgorithm the algorithm to be removed from the bag with respect to the payload files
    * @return this bag, without the removed algorithm
    */
-  def removePayloadManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm): Try[Bag] = Try {
+  override def removePayloadManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm): Try[Bag] = Try {
     removeAlgorithm(checksumAlgorithm)(locBag.getPayLoadManifests, locBag.setPayLoadManifests)
 
     val manifestPath = baseDir / s"manifest-${ checksumAlgorithm.getBagitName }.txt"
@@ -355,7 +357,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return the set of algorithms used for calculating the tagfiles' checksums
    */
-  def tagManifestAlgorithms: Set[ChecksumAlgorithm] = algorithms(locBag.getTagManifests)
+  override def tagManifestAlgorithms: Set[ChecksumAlgorithm] = algorithms(locBag.getTagManifests)
 
   /**
    * Add an algorithm to the bag that will be used for calculating the checksums of the tag files.
@@ -370,8 +372,8 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param updateManifest    indicates whether it should update (`true`) or add (`false`) the algorithm
    * @return this bag, with the new algorithm added
    */
-  def addTagManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm,
-                              updateManifest: Boolean = false): Try[Bag] = Try {
+  override def addTagManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm,
+                                       updateManifest: Boolean = false): Try[Bag] = Try {
     addAlgorithm(checksumAlgorithm, updateManifest)(locBag.getTagManifests,
       baseDir.listRecursively
         .filter(_.isRegularFile)
@@ -390,7 +392,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param checksumAlgorithm the algorithm to be removed from the bag with respect to the tag files
    * @return this bag, without the removed algorithm
    */
-  def removeTagManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm): Try[Bag] = Try {
+  override def removeTagManifestAlgorithm(checksumAlgorithm: ChecksumAlgorithm): Try[Bag] = Try {
     removeAlgorithm(checksumAlgorithm)(locBag.getTagManifests, locBag.setTagManifests)
 
     this
@@ -401,7 +403,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return the mapping of payload file to its checksum, for each algorithm
    */
-  def payloadManifests: Map[ChecksumAlgorithm, Map[File, String]] = manifests(locBag.getPayLoadManifests)
+  override def payloadManifests: Map[ChecksumAlgorithm, Map[File, String]] = manifests(locBag.getPayLoadManifests)
 
   /**
    * Add a payload file from an `java.io.InputStream` to the bag at the position indicated by the
@@ -420,7 +422,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param pathInData  the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
    */
-  def addPayloadFile(inputStream: InputStream)(pathInData: RelativePath): Try[Bag] = Try {
+  override def addPayloadFile(inputStream: InputStream)(pathInData: RelativePath): Try[Bag] = Try {
     val file = pathInData(data)
 
     if (file.exists)
@@ -453,7 +455,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
    */
-  def addPayloadFile(src: File)(pathInData: RelativePath): Try[Bag] = Try {
+  override def addPayloadFile(src: File)(pathInData: RelativePath): Try[Bag] = Try {
     addFile(src, pathInData)(_.addPayloadFile)
 
     this
@@ -473,7 +475,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param pathInData the path to the file within `bag/data` that is being removed
    * @return this bag, without the payload manifest entries for the removed file
    */
-  def removePayloadFile(pathInData: RelativePath): Try[Bag] = Try {
+  override def removePayloadFile(pathInData: RelativePath): Try[Bag] = Try {
     val file = pathInData(data)
 
     if (file.notExists)
@@ -493,7 +495,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    *
    * @return the mapping of tag file to its checksum, for each algorithm
    */
-  def tagManifests: Map[ChecksumAlgorithm, Map[File, String]] = manifests(locBag.getTagManifests)
+  override def tagManifests: Map[ChecksumAlgorithm, Map[File, String]] = manifests(locBag.getTagManifests)
 
   /**
    * Add a tag file from an `java.io.InputStream` to the bag at the position indicated by the
@@ -510,7 +512,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param pathInBag   the path relative to the bag's base directory where the new file is being placed
    * @return this bag, with the added checksums of the new tag file
    */
-  def addTagFile(inputStream: InputStream)(pathInBag: RelativePath): Try[Bag] = Try {
+  override def addTagFile(inputStream: InputStream)(pathInBag: RelativePath): Try[Bag] = Try {
     val file = pathInBag(baseDir)
 
     if (file.exists)
@@ -564,7 +566,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param pathInBag the path relative to the bag's base directory where the new file is being placed
    * @return this bag, with the added checksums of the new tag file
    */
-  def addTagFile(src: File)(pathInBag: RelativePath): Try[Bag] = Try {
+  override def addTagFile(src: File)(pathInBag: RelativePath): Try[Bag] = Try {
     addFile(src, pathInBag)(_.addTagFile)
 
     this
@@ -584,7 +586,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @param pathInBag the path to the file within the bag's base directory that is being removed
    * @return this bag, without the tag manifest entries for the removed file
    */
-  def removeTagFile(pathInBag: RelativePath): Try[Bag] = Try {
+  override def removeTagFile(pathInBag: RelativePath): Try[Bag] = Try {
     val file = pathInBag(baseDir)
 
     if (file.notExists)
@@ -628,7 +630,7 @@ class Bag private(private[v0] val locBag: LocBag) {
    * @return `scala.util.Success` if the save was performed successfully,
    *         `scala.util.Failure` otherwise
    */
-  def save(): Try[Unit] = Try {
+  override def save(): Try[Unit] = Try {
     if (payloadManifestAlgorithms.isEmpty)
       throw new IllegalStateException("bag must contain at least one payload manifest")
     if (!baseDir.isWriteable)
