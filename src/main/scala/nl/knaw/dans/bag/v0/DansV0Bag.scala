@@ -244,6 +244,34 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
+  // TODO implement
+  // TODO test
+  override def includeInFetch(pathInData: RelativePath, url: URL): Try[DansBag] = ???
+
+  /**
+   * @inheritdoc
+   */
+  // TODO implement
+  // TODO test
+  override def resolveFetchByFile(pathInData: RelativePath): Try[DansBag] = ???
+
+  /**
+   * @inheritdoc
+   */
+  // TODO implement
+  // TODO test
+  override def resolveFetchByURL(url: URL): Try[DansBag] = ???
+
+  /**
+   * @inheritdoc
+   */
+  // TODO implement
+  // TODO test
+  override def resolveFetch(item: FetchItem): Try[DansBag] = ???
+
+  /**
+   * @inheritdoc
+   */
   override def payloadManifestAlgorithms: Set[ChecksumAlgorithm] = algorithms(locBag.getPayLoadManifests)
 
   /**
