@@ -170,7 +170,8 @@ trait DansBag {
   /**
    * Migrates a file from the payload directory to the fetch file, where it is referenced by the
    * given `URL`.
-   * If the resolved path of the original file does not exist in the bag, a `Failure` is returned.
+   * If the resolved path of the original file does not exist in the bag, or if the resolved path is
+   * outside of the `bag/data` directory, a `Failure` is returned.
    * The `URL` is not checked for its resolvability, nor is this method responsible for uploading
    * the referenced file to the specific `URL`.
    *
