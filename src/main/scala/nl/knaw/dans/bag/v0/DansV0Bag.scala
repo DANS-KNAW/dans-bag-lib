@@ -179,8 +179,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
         destinationPath.toString())
     if (!destinationPath.isChildOf(data))
       throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
-    if (url.getProtocol != "http" && url.getProtocol != "https")
-      throw new IllegalArgumentException("url can only have host 'http' or 'https'")
+    validateURL(url)
 
     downloadFetchFile(url)((input, dest) => {
       val tempDest = dest / destinationPath.name
@@ -516,6 +515,11 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     for (file <- this.glob("tagmanifest-*.txt"))
       file.delete()
     ManifestWriter.writeTagManifests(locBag.getTagManifests, baseDir, baseDir, fileEncoding)
+  }
+
+  protected def validateURL(url: URL): Unit = {
+    if (url.getProtocol != "http" && url.getProtocol != "https")
+      throw new IllegalArgumentException("url can only have host 'http' or 'https'")
   }
 
   protected def openConnection(url: URL): ManagedResource[URLConnection] = {
