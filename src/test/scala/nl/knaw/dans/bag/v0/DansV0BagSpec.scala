@@ -927,6 +927,89 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
+  "includeInFetch" should "remove the file from the payload" in {
+    val bag = fetchBagV0()
+
+    (bag.data / "y").toJava should exist
+
+    inside(bag.includeInFetch(_ / "y", new URL("http://y"))) {
+      case Success(resultBag) =>
+        (resultBag.data / "y").toJava shouldNot exist
+    }
+  }
+
+  it should "remove any empty directories that are left behind after removing the file from the payload" in {
+    val bag = fetchBagV0()
+
+    (bag.data / "more" / "files" / "abc").toJava should exist
+
+    inside(bag.includeInFetch(_ / "more" / "files" / "abc", new URL("http://abc"))) {
+      case Success(resultBag) =>
+        (resultBag.data / "more" / "files" / "abc").toJava shouldNot exist
+        (resultBag.data / "more" / "files").toJava shouldNot exist
+        (resultBag.data / "more").toJava shouldNot exist
+        resultBag.data.toJava should exist
+    }
+  }
+
+  it should "not remove the file from the payload manifests" in {
+    val bag = fetchBagV0()
+
+    forEvery(bag.payloadManifests) {
+      case (_, manifest) =>
+        manifest should contain key (bag.data / "y")
+    }
+
+    inside(bag.includeInFetch(_ / "y", new URL("http://y"))) {
+      case Success(resultBag) =>
+        forEvery(resultBag.payloadManifests) {
+          case (_, manifest) =>
+            manifest should contain key (resultBag.data / "y")
+        }
+    }
+  }
+
+  it should "add the file to the list of fetch files" in {
+    val bag = fetchBagV0()
+    val yBytes = (bag.data / "y").size
+
+    bag.fetchFiles.map(_.file) shouldNot contain(bag.data / "y")
+
+    inside(bag.includeInFetch(_ / "y", new URL("http://y"))) {
+      case Success(resultBag) =>
+        resultBag.fetchFiles should contain(FetchItem(new URL("http://y"), yBytes, resultBag.data / "y"))
+    }
+  }
+
+  it should "fail when the file does not exist in the payload manifest" in {
+    val bag = fetchBagV0()
+
+    (bag.data / "no-such-file.txt").toJava shouldNot exist
+
+    inside(bag.includeInFetch(_ / "no-such-file.txt", new URL("http://xxx"))) {
+      case Failure(e: NoSuchFileException) =>
+        e should have message (bag.data / "no-such-file.txt").toString()
+    }
+  }
+
+  it should "fail when the file is not inside the bag/data directory" in {
+    val bag = fetchBagV0()
+
+    inside(bag.includeInFetch(_ / ".." / "fetch.txt", new URL("http://xxx"))) {
+      case Failure(e: IllegalArgumentException) =>
+        e should have message s"a fetch file can only point to a location inside the bag/data directory; ${ bag / "fetch.txt" } is outside the data directory"
+    }
+  }
+
+  it should "fail when the url another protocol than 'http' or 'https'" in {
+    val bag = fetchBagV0()
+
+    inside(bag.includeInFetch(_ / "y", (testDir / "y-new-location").url)) {
+      case Failure(e: IllegalArgumentException) =>
+        e should have message "url can only have host 'http' or 'https'"
+    }
+  }
+
   "payloadManifestAlgorithms" should "list all payload manifest algorithms that are being used in this bag" in {
     val bag = multipleManifestsBagV0()
 

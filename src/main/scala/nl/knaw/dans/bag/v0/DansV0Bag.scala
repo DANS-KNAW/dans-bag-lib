@@ -243,9 +243,23 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  // TODO implement
-  // TODO test
-  override def includeInFetch(pathInData: RelativePath, url: URL): Try[DansBag] = ???
+  override def includeInFetch(pathInData: RelativePath, url: URL): Try[DansBag] = Try {
+    val srcPath = pathInData(data)
+
+    if (srcPath.notExists)
+      throw new NoSuchFileException(srcPath.toString())
+    if (!srcPath.isChildOf(data))
+      throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $srcPath is outside the data directory")
+    validateURL(url)
+
+    val item = FetchItem(url, srcPath.size, srcPath)
+
+    removeFile(srcPath, data)
+
+    locBag.getItemsToFetch.add(item)
+
+    this
+  }
 
   /**
    * @inheritdoc
