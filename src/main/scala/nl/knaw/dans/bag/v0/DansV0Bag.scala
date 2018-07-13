@@ -378,7 +378,8 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     if (file.isDirectory)
       throw new IllegalArgumentException(s"cannot remove directory '$file'; you can only remove files")
 
-    removeFile(file, data, locBag.getPayLoadManifests, locBag.setPayLoadManifests)
+    removeFile(file, data)
+    removeFileFromManifests(file, locBag.getPayLoadManifests, locBag.setPayLoadManifests)
 
     this
   }
@@ -462,7 +463,8 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     if (file.parent == baseDir && (file.name.startsWith("tagmanifest-") && file.name.endsWith(".txt")))
       throw new IllegalArgumentException(s"cannot remove tagmanifest file '$file'")
 
-    removeFile(file, baseDir, locBag.getTagManifests, locBag.setTagManifests)
+    removeFile(file, baseDir)
+    removeFileFromManifests(file, locBag.getTagManifests, locBag.setTagManifests)
 
     this
   }
@@ -656,8 +658,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     recursion(this, src, pathInBag)(mutable.Queue.empty)
   }
 
-  private def removeFile(file: File, haltDeleteAt: File, manifests: jSet[LocManifest],
-                         setManifests: jSet[LocManifest] => Unit): Unit = {
+  private def removeFile(file: File, haltDeleteAt: File): Unit = {
     file.delete()
     recursiveClean(file.parent)
 
@@ -668,8 +669,6 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
         recursiveClean(file.parent)
       }
     }
-
-    removeFileFromManifests(file, manifests, setManifests)
   }
 
   private def removeFileFromManifests(file: File, manifests: jSet[LocManifest],
