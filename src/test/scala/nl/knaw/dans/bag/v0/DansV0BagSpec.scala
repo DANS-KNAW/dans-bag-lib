@@ -1010,6 +1010,117 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
+  "resolveFetchByFile" should "download the file and put it in the payload" in {
+    assumeCanConnect(lipsum4URL)
+
+    val bag = fetchBagV0()
+    val x = bag.data / "x"
+
+    x.toJava shouldNot exist
+
+    inside(bag.resolveFetchByFile(_ / "x")) {
+      case Success(_) =>
+        x.toJava should exist
+    }
+  }
+
+  it should "create the subdirectories that are necessary for placing the file in its proper place" in {
+    assumeCanConnect(lipsum1URL)
+
+    val bag = fetchBagV0()
+    val subU = bag.data / "sub" / "u"
+
+    subU.toJava shouldNot exist
+    subU.parent.toJava shouldNot exist
+    subU.parent.parent.toJava should exist
+
+    inside(bag.resolveFetchByFile(_ / "sub" / "u")) {
+      case Success(_) =>
+        subU.toJava should exist
+    }
+  }
+
+  it should "not remove the file from the list of fetch files" in {
+    assumeCanConnect(lipsum4URL)
+
+    val bag = fetchBagV0()
+    val x = bag.data / "x"
+
+    bag.fetchFiles.map(_.file) should contain(x)
+
+    inside(bag.resolveFetchByFile(_ / "x")) {
+      case Success(resultBag) =>
+        resultBag.fetchFiles.map(_.file) should contain(x)
+    }
+  }
+
+  // TODO add ignores for tests that use download
+
+  it should "fail when the file to be resolved already exists within the bag" in {
+    val bag = fetchBagV0()
+    val u = (bag.data / "sub" createDirectory()) / "u" writeText lipsum(1)
+
+    u.toJava should exist
+
+    inside(bag.resolveFetchByFile(_ / "sub" / "u")) {
+      case Failure(e: FileAlreadyExistsException) =>
+        e should have message u.toString
+    }
+  }
+
+  it should "fail when the file to be resolved points outside of the be bag/data directory" in {
+    val bag = fetchBagV0()
+
+    inside(bag.resolveFetchByFile(_ / ".." / "test")) {
+      case Failure(e: IllegalArgumentException) =>
+        e should have message s"a fetch file can only point to a location inside the bag/data directory; ${ bag / "test" } is outside the data directory"
+    }
+  }
+
+  it should "fail when the file to be resolved does not occur in the list of fetch files" in {
+    val bag = fetchBagV0()
+
+    inside(bag.resolveFetchByFile(_ / "non-existing-file")) {
+      case Failure(e: IllegalArgumentException) =>
+        e should have message s"path ${ bag.data / "non-existing-file" } does not occur in the list of fetch files"
+    }
+  }
+
+  it should "fail when the URL is not resolvable" in {
+    assumeCanConnect(lipsum1URL, lipsum2URL, lipsum3URL, lipsum4URL, lipsum5URL)
+
+    val bag = fetchBagV0()
+    val yNew = bag.data / "y-new"
+    bag.locBag.getItemsToFetch.add(FetchItem(new URL("http://y-new"), 12L, yNew))
+
+    inside(bag.resolveFetchByFile(_ / "y-new")) {
+      // it's either one of these exceptions that is thrown
+      case Failure(e: SocketTimeoutException) =>
+        e should have message "connect timed out"
+      case Failure(e: UnknownHostException) =>
+        e should have message yNew.name
+    }
+  }
+
+  it should "fail when the checksum of the downloaded file does not match the one listed in the payload manifests" in {
+    assumeCanConnect(lipsum1URL, lipsum2URL, lipsum3URL, lipsum4URL, lipsum5URL)
+
+    val bag = fetchBagV0()
+    val x = bag.data / "x"
+    val checksum = bag.payloadManifests(ChecksumAlgorithm.SHA1)(x)
+    bag.locBag.getPayLoadManifests.asScala.headOption.value
+      .getFileToChecksumMap
+      .put(x, "invalid-checksum")
+
+    inside(bag.resolveFetchByFile(_ / "x")) {
+      case Failure(e: InvalidChecksumException) =>
+        e should have message s"checksum (${ ChecksumAlgorithm.SHA1 }) of the downloaded file was 'invalid-checksum' but should be '$checksum'"
+    }
+  }
+
+  // TODO add tests for resolveFetchByURL
+  // TODO add tests for resolveFetch
+
   "payloadManifestAlgorithms" should "list all payload manifest algorithms that are being used in this bag" in {
     val bag = multipleManifestsBagV0()
 

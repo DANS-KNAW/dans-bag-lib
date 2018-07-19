@@ -13,14 +13,14 @@ import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.util.PathUtils
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
 import nl.knaw.dans.bag.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
-import nl.knaw.dans.bag.{ ChecksumAlgorithm, FetchItem, DansBag, RelativePath, betterFileToPath }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, DansBag, FetchItem, RelativePath, betterFileToPath }
 import org.joda.time.DateTime
 import org.joda.time.format.{ DateTimeFormatter, ISODateTimeFormat }
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.language.implicitConversions
+import scala.language.{ implicitConversions, postfixOps }
 import scala.util.{ Failure, Success, Try }
 
 class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
@@ -264,9 +264,50 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  // TODO implement
   // TODO test
-  override def resolveFetchByFile(pathInData: RelativePath): Try[DansBag] = ???
+  override def resolveFetchByFile(pathInData: RelativePath): Try[DansBag] = Try {
+    val destinationPath = pathInData(data)
+
+    if (destinationPath.exists)
+      throw new FileAlreadyExistsException(destinationPath.toString())
+    if (!destinationPath.isChildOf(data))
+      throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
+
+    val FetchItem(url, _, _) = fetchFiles.find(_.file == destinationPath)
+      .getOrElse { throw new IllegalArgumentException(s"path $destinationPath does not occur in the list of fetch files") }
+
+    downloadFetchFile(url)((inputstream, dest) => {
+      val tempDest = dest / destinationPath.name
+      jFiles.copy(inputstream, tempDest.path)
+      require(tempDest.exists, s"copy from $url to $tempDest did not succeed")
+
+      val mismatches = locBag.getPayLoadManifests.asScala
+        .map(manifest => {
+          val algorithm: ChecksumAlgorithm = manifest.getAlgorithm
+          val recordedChecksum = Option(manifest.getFileToChecksumMap.get(destinationPath.path))
+
+          (algorithm, recordedChecksum, tempDest.checksum(algorithm).toLowerCase)
+        })
+        .collect {
+          case (algorithm, Some(recordedChecksum), expectedChecksum)
+            if expectedChecksum != recordedChecksum =>
+            (algorithm, recordedChecksum, expectedChecksum)
+        }
+        .toList
+
+      mismatches match {
+        case Nil => // nothing to do
+        case (algo, checksum, expectedChecksum) :: Nil =>
+          throw InvalidChecksumException(algo, checksum, expectedChecksum)
+        case ms => throw InvalidChecksumException(ms)
+      }
+
+      destinationPath.parent.createDirectories()
+      tempDest moveTo destinationPath
+    })
+
+    this
+  }
 
   /**
    * @inheritdoc

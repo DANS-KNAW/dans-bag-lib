@@ -190,7 +190,8 @@ trait DansBag {
    * `fetch.txt` is left in place and is NOT removed.
    *
    * If the checksum(s) of the downloaded file do(es) not match the checksum(s) listed in the
-   * payload manifest(s), a `Failure` will be returned.
+   * payload manifest(s), a `Failure` will be returned. In this case, the file is not added to the
+   * payload directory.
    *
    * Due to downloading the file, this method may take some time to complete and return. It is
    * therefore strongly advised to wrap a call to this method in a `Promise`/`Future`, `Observable`
