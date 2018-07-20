@@ -264,11 +264,11 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def resolveFetchByFile(pathInData: RelativePath): Try[DansBag] = Try {
+  override def resolveFetchItem(pathInData: RelativePath): Try[DansBag] = Try {
     val destinationPath = pathInData(data)
 
     fetchFiles.find(_.file == destinationPath)
-      .map(resolveFetch)
+      .map(resolveFetchItem)
       .getOrElse {
         throw new IllegalArgumentException(s"path $destinationPath does not occur in the list of fetch files")
       }
@@ -277,11 +277,11 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def resolveFetchByURL(url: URL): Try[DansBag] = Try {
+  override def resolveFetchItem(url: URL): Try[DansBag] = Try {
     validateURL(url)
 
     fetchFiles.find(_.url == url)
-      .map(resolveFetch)
+      .map(resolveFetchItem)
       .getOrElse {
         throw new IllegalArgumentException(s"no such url: $url")
       }
@@ -290,7 +290,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def resolveFetch(item: FetchItem): Try[DansBag] = Try {
+  override def resolveFetchItem(item: FetchItem): Try[DansBag] = Try {
     if (!locBag.getItemsToFetch.contains(item: LocFetchItem)) {
       throw new IllegalArgumentException(s"fetch item $item does not occur in the list of fetch files")
     }

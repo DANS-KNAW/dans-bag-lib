@@ -204,7 +204,7 @@ trait DansBag {
    *                   file is stored on file system after being downloaded
    * @return this bag, after having downloaded the file
    */
-  def resolveFetchByFile(pathInData: RelativePath): Try[DansBag]
+  def resolveFetchItem(pathInData: RelativePath): Try[DansBag]
 
   /**
    * Downloads a file from the list of fetch files (indicated by the `URL`) and stores it at its
@@ -224,7 +224,7 @@ trait DansBag {
    * @param url a `URL` that is listed in the fetch file and through which the file can be downloaded
    * @return this bag, after having downloaded the file
    */
-  def resolveFetchByURL(url: URL): Try[DansBag]
+  def resolveFetchItem(url: URL): Try[DansBag]
 
   /**
    * Downloads a file from the list of fetch files (indicated by the `FetchItem`) through the
@@ -244,7 +244,7 @@ trait DansBag {
    * @param item the `FetchItem` containing the `URL` and path to the file in the `bag/data` directory
    * @return this bag, after having downloaded the file
    */
-  def resolveFetch(item: FetchItem): Try[DansBag]
+  def resolveFetchItem(item: FetchItem): Try[DansBag]
 
   /**
    * List all algorithms that are being used in this bag to calculate the checksums of the payload files.
