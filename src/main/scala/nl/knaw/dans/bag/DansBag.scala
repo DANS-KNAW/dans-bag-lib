@@ -182,7 +182,7 @@ trait DansBag {
    * @param url        the `URL` through which the file will be resolved in the future
    * @return this bag, with the added reference in the fetch file
    */
-  def includeInFetch(pathInData: RelativePath, url: URL): Try[DansBag]
+  def replaceFileWithFetchItem(pathInData: RelativePath, url: URL): Try[DansBag]
 
   /**
    * Downloads a file from the list of fetch files (indicated by the relative path to `bag/data`)

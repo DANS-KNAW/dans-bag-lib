@@ -243,7 +243,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def includeInFetch(pathInData: RelativePath, url: URL): Try[DansBag] = Try {
+  override def replaceFileWithFetchItem(pathInData: RelativePath, url: URL): Try[DansBag] = Try {
     val srcPath = pathInData(data)
 
     if (srcPath.notExists)
