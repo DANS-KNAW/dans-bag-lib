@@ -8,7 +8,7 @@ import java.util.{ UUID, Set => jSet }
 
 import better.files.{ CloseableOps, Disposable, File, Files, ManagedResource }
 import gov.loc.repository.bagit.creator.BagCreator
-import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, Manifest => LocManifest, Metadata => LocMetadata }
+import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, Manifest => LocManifest, Metadata => LocMetadata, FetchItem => LocFetchItem }
 import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.util.PathUtils
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
@@ -264,17 +264,42 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  // TODO test
   override def resolveFetchByFile(pathInData: RelativePath): Try[DansBag] = Try {
     val destinationPath = pathInData(data)
 
+    fetchFiles.find(_.file == destinationPath)
+      .map(resolveFetch)
+      .getOrElse {
+        throw new IllegalArgumentException(s"path $destinationPath does not occur in the list of fetch files")
+      }
+  }.flatten
+
+  /**
+   * @inheritdoc
+   */
+  override def resolveFetchByURL(url: URL): Try[DansBag] = Try {
+    validateURL(url)
+
+    fetchFiles.find(_.url == url)
+      .map(resolveFetch)
+      .getOrElse {
+        throw new IllegalArgumentException(s"no such url: $url")
+      }
+  }.flatten
+
+  /**
+   * @inheritdoc
+   */
+  override def resolveFetch(item: FetchItem): Try[DansBag] = Try {
+    if (!locBag.getItemsToFetch.contains(item: LocFetchItem)) {
+      throw new IllegalArgumentException(s"fetch item $item does not occur in the list of fetch files")
+    }
+
+    val FetchItem(url, _, destinationPath) = item
     if (destinationPath.exists)
       throw new FileAlreadyExistsException(destinationPath.toString())
     if (!destinationPath.isChildOf(data))
       throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
-
-    val FetchItem(url, _, _) = fetchFiles.find(_.file == destinationPath)
-      .getOrElse { throw new IllegalArgumentException(s"path $destinationPath does not occur in the list of fetch files") }
 
     downloadFetchFile(url)((inputstream, dest) => {
       val tempDest = dest / destinationPath.name
@@ -308,20 +333,6 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     this
   }
-
-  /**
-   * @inheritdoc
-   */
-  // TODO implement
-  // TODO test
-  override def resolveFetchByURL(url: URL): Try[DansBag] = ???
-
-  /**
-   * @inheritdoc
-   */
-  // TODO implement
-  // TODO test
-  override def resolveFetch(item: FetchItem): Try[DansBag] = ???
 
   /**
    * @inheritdoc

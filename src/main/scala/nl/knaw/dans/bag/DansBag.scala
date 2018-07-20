@@ -179,7 +179,7 @@ trait DansBag {
    * fetch file will only be applied to the bag on the file system once `Bag.save` is called.
    *
    * @param pathInData the path in `bag/data` to the file that is included in the fetch file
-   * @param url the `URL` through which the file will be resolved in the future
+   * @param url        the `URL` through which the file will be resolved in the future
    * @return this bag, with the added reference in the fetch file
    */
   def includeInFetch(pathInData: RelativePath, url: URL): Try[DansBag]
