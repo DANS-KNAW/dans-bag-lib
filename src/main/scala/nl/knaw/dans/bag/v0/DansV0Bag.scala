@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2018 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.knaw.dans.bag.v0
 
 import java.io.InputStream
@@ -199,12 +214,14 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def addFetchFile(url: URL, length: Long, pathInData: RelativePath): Try[DansV0Bag] = Try {
+  override def addFetchItem(url: URL, pathInData: RelativePath): Try[DansV0Bag] = Try {
     val destinationPath = pathInData(data)
+    var length: Long = 0L
 
     if (destinationPath.exists)
-      throw new FileAlreadyExistsException(
-        destinationPath.toString())
+      throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in payload")
+    if (fetchFiles.find(_.file == destinationPath).isDefined)
+      throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in fetch.txt")
     if (!destinationPath.isChildOf(data))
       throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
     if (url.getProtocol != "http" && url.getProtocol != "https")
@@ -214,6 +231,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
       val tempDest = dest / destinationPath.name
       jFiles.copy(input, tempDest.path)
       require(tempDest.exists, s"copy from $url to $tempDest did not succeed")
+      length = tempDest.size
 
       for (manifest <- locBag.getPayLoadManifests.asScala;
            algorithm: ChecksumAlgorithm = manifest.getAlgorithm)
@@ -235,27 +253,27 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def removeFetchByFile(pathInData: RelativePath): Try[DansV0Bag] = Try {
+  override def removeFetchItem(pathInData: RelativePath): Try[DansV0Bag] = Try {
     val destinationPath = pathInData(data)
 
     fetchFiles.find(_.file == destinationPath)
-      .map(removeFetch)
+      .map(removeFetchItem)
       .getOrElse { throw new NoSuchFileException(destinationPath.toString) }
   }
 
   /**
    * @inheritdoc
    */
-  override def removeFetchByURL(url: URL): Try[DansV0Bag] = Try {
+  override def removeFetchItem(url: URL): Try[DansV0Bag] = Try {
     fetchFiles.find(_.url == url)
-      .map(removeFetch)
+      .map(removeFetchItem)
       .getOrElse { throw new IllegalArgumentException(s"no such URL: $url") }
   }
 
   /**
    * @inheritdoc
    */
-  override def removeFetch(item: FetchItem): DansV0Bag = {
+  override def removeFetchItem(item: FetchItem): DansV0Bag = {
     if (locBag.getItemsToFetch.remove(FetchItem.locDeconverter(item)))
       removeFileFromManifests(item.file, locBag.getPayLoadManifests, locBag.setPayLoadManifests)
 
