@@ -2367,7 +2367,7 @@ class DansV0BagSpec extends TestSupportFixture
     )
   }
 
-  it should "save fetch.txt when there were already fetch files in the bag" ignore { // TODO https://github.com/LibraryOfCongress/bagit-java/issues/117
+  it should "save fetch.txt when there were already fetch files in the bag" in pendingUntilFixed { // TODO https://github.com/LibraryOfCongress/bagit-java/issues/117
     assumeCanConnect(lipsum1URL, lipsum2URL, lipsum3URL, lipsum4URL, lipsum5URL)
 
     val bag = fetchBagV0()
