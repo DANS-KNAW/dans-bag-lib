@@ -729,7 +729,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "removeFetchItem by RelativePath" should "remove the fetch item from the list" in {
+  "removeFetchItem by File" should "remove the fetch item from the list" in {
     val bag = fetchBagV0()
     val relativePath: RelativePath = _ / "x"
     val absolutePath = relativePath(bag.data)

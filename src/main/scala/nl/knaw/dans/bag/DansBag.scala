@@ -154,11 +154,15 @@ trait DansBag {
    */
   def fetchFiles: Seq[FetchItem]
 
-  // TODO this may cause latency, due to downloading of file. Wrapping in a Promise/Observable is recommended!
   /**
    * Adds the triple (url, length, path) to the `fetch.txt`.
    * If the path already exists in the fetch, or in the payload, an Exception will occur.
    * The PayloadManifests are updated with the checksum of the downloaded file. The length will be calculated as well.
+   *
+   * Due to calculating the checksums for all files, as well as downloading all fetch files, this
+   * method may take some time to complete and return. It is therefore strongly advised to wrap
+   * a call to this method in a `Promise`/`Future`, `Observable` or any other desired data structure
+   * that deals with latency in a proper way.
    *
    * Please note that this will only be synced with `fetch.txt` and `manifest-<alg>.txt` once `Bag.save` is called.
    *
