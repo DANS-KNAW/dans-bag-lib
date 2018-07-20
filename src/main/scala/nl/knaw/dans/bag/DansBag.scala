@@ -187,7 +187,7 @@ trait DansBag {
   /**
    * Downloads a file from the list of fetch files (indicated by the relative path to `bag/data`)
    * through the corresponding `URL` and stores it at its original place. The original reference in
-   * `fetch.txt` is left in place and is NOT removed.
+   * `fetch.txt` is removed.
    *
    * If the checksum(s) of the downloaded file do(es) not match the checksum(s) listed in the
    * payload manifest(s), a `Failure` will be returned. In this case, the file is not added to the
@@ -209,7 +209,7 @@ trait DansBag {
   /**
    * Downloads a file from the list of fetch files (indicated by the `URL`) and stores it at its
    * original place, as indicated by the `fetch.txt` file. The original reference in `fetch.txt` is
-   * left in place and is NOT removed.
+   * removed.
    *
    * If the checksum(s) of the downloaded file do(es) not match the checksum(s) listed in the
    * payload manifest(s), a `Failure` will be returned.
@@ -229,7 +229,7 @@ trait DansBag {
   /**
    * Downloads a file from the list of fetch files (indicated by the `FetchItem`) through the
    * corresponding `URL` and stores it at its original place. The original reference in `fetch.txt`
-   * is left in place and is NOT removed.
+   * is removed.
    *
    * If the checksum(s) of the downloaded file do(es) not match the checksum(s) listed in the
    * payload manifest(s), a `Failure` will be returned.

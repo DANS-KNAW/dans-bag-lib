@@ -331,6 +331,8 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
       tempDest moveTo destinationPath
     })
 
+    locBag.getItemsToFetch.remove(item: LocFetchItem)
+
     this
   }
 

@@ -1097,7 +1097,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  it should "not remove the file from the list of fetch files" in {
+  it should "remove the file from the list of fetch files" in {
     assumeCanConnect(lipsum4URL)
 
     val bag = fetchBagV0()
@@ -1107,7 +1107,7 @@ class DansV0BagSpec extends TestSupportFixture
 
     inside(bag.resolveFetchItem(FetchItem(lipsum4URL, 12L, x))) {
       case Success(resultBag) =>
-        resultBag.fetchFiles.map(_.file) should contain(x)
+        resultBag.fetchFiles.map(_.file) should not contain x
     }
   }
 
