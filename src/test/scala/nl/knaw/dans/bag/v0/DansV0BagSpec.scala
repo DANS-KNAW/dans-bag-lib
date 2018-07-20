@@ -1174,9 +1174,19 @@ class DansV0BagSpec extends TestSupportFixture
       .getFileToChecksumMap
       .put(x, "invalid-checksum")
 
-    inside(bag.replaceFetchItemWithFile(FetchItem(lipsum4URL, 12L, x))) {
+    x.toJava shouldNot exist
+
+    val fetchItem = FetchItem(lipsum4URL, 12L, x)
+    inside(bag.replaceFetchItemWithFile(fetchItem)) {
       case Failure(e: InvalidChecksumException) =>
         e should have message s"checksum (${ ChecksumAlgorithm.SHA1 }) of the downloaded file was 'invalid-checksum' but should be '$checksum'"
+
+        bag.list.withFilter(_.isDirectory).map(_.name).toList should contain only (
+          "data",
+          "metadata",
+        )
+        bag.fetchFiles should contain (fetchItem)
+        x.toJava shouldNot exist
     }
   }
 
