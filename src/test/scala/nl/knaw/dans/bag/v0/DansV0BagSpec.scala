@@ -551,7 +551,7 @@ class DansV0BagSpec extends TestSupportFixture
     bag.locBag.getMetadata.add(DansV0Bag.IS_VERSION_OF_KEY, "not-a-uri")
 
     bag.isVersionOf should matchPattern {
-      case Failure(e: IllegalArgumentException) if e.getMessage == "Invalid format: \"not-a-uri\"" =>
+      case Failure(e: IllegalStateException) if e.getMessage == "Invalid format: \"not-a-uri\"" =>
     }
   }
 
@@ -616,6 +616,23 @@ class DansV0BagSpec extends TestSupportFixture
     simpleBagDirV0 / "fetch.txt" touch()
 
     simpleBagV0().fetchFiles shouldBe empty
+  }
+
+  "easyUserAccount" should "return Success(Option.empty) if no account present" in {
+    simpleBagV0().easyUserAccount shouldBe Success(Option.empty)
+  }
+
+  it should "return the one account if one is present" in {
+    simpleBagV0().withEasyUserAccount("someAccount").easyUserAccount shouldBe Success(Some("someAccount"))
+  }
+
+  it should "return a Failure of IllegalStateException if more than one account is found" in {
+    simpleBagV0()
+      .addBagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY, "account1")
+      .addBagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY, "account2").easyUserAccount should matchPattern {
+      case Failure(e: IllegalStateException) if e.getMessage.startsWith("Only one EASY-User-Account allowed") =>
+
+    }
   }
 
   "withEasyUserAccount" should "add EASY-User-Account to bag-info.txt" in {
