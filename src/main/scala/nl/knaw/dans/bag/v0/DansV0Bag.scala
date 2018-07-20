@@ -589,7 +589,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
   protected def validateURL(url: URL): Unit = {
     if (url.getProtocol != "http" && url.getProtocol != "https")
-      throw new IllegalArgumentException("url can only have host 'http' or 'https'")
+      throw new IllegalArgumentException("url can only have protocol 'http' or 'https'")
   }
 
   protected def openConnection(url: URL): ManagedResource[URLConnection] = {

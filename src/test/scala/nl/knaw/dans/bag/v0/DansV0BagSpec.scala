@@ -1006,7 +1006,7 @@ class DansV0BagSpec extends TestSupportFixture
 
     inside(bag.replaceFileWithFetchItem(_ / "y", (testDir / "y-new-location").url)) {
       case Failure(e: IllegalArgumentException) =>
-        e should have message "url can only have host 'http' or 'https'"
+        e should have message "url can only have protocol 'http' or 'https'"
     }
   }
 
@@ -1054,7 +1054,7 @@ class DansV0BagSpec extends TestSupportFixture
 
     inside(bag.replaceFetchItemWithFile(file.url)) {
       case Failure(e: IllegalArgumentException) =>
-        e should have message "url can only have host 'http' or 'https'"
+        e should have message "url can only have protocol 'http' or 'https'"
     }
   }
 
