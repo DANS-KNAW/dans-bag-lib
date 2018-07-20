@@ -32,7 +32,6 @@ import nl.knaw.dans.bag.fixtures._
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone }
 
-import scala.collection
 import scala.collection.JavaConverters._
 import scala.language.{ existentials, implicitConversions, postfixOps }
 import scala.util.{ Failure, Success, Try }
