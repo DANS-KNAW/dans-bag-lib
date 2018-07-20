@@ -147,6 +147,27 @@ trait DansBag {
    */
   def withoutIsVersionOf(): DansBag
 
+
+  /**
+   * Adds `userId` under the key 'EASY-User-Account' to `bag-info.txt`. If the key is already present the
+   * value is overwritten.
+   *
+   * Please, note that this will not be persisted to disk until [[DansBag.save()]] is used.
+   *
+   * @return the modified DansBag
+   */
+  def withEasyUserAccount(userId: String): DansBag
+
+
+  /**
+   * Removes the entry with key 'EASY-User-Account' from `bag-info.txt`.
+   *
+   * Please, note that this will not be persisted to disk until [[DansBag.save()]] is used.
+   *
+   * @return the modified DansBag
+   */
+  def withoutEasyUserAccount(): DansBag
+
   /**
    * Lists all files that are stated in `fetch.txt`.
    *

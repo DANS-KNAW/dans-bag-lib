@@ -7,7 +7,7 @@ import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException }
 import java.util.UUID
 
 import better.files.File
-import gov.loc.repository.bagit.conformance.{ BagLinter, BagitWarning }
+import gov.loc.repository.bagit.conformance.{ BagitWarning, BagLinter }
 import gov.loc.repository.bagit.domain.Version
 import gov.loc.repository.bagit.verify.BagVerifier
 import nl.knaw.dans.bag.ChecksumAlgorithm.ChecksumAlgorithm
@@ -17,6 +17,7 @@ import nl.knaw.dans.bag.fixtures._
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{ DateTime, DateTimeZone }
 
+import scala.collection
 import scala.collection.JavaConverters._
 import scala.language.{ existentials, implicitConversions, postfixOps }
 import scala.util.{ Failure, Success, Try }
@@ -615,6 +616,18 @@ class DansV0BagSpec extends TestSupportFixture
     simpleBagDirV0 / "fetch.txt" touch()
 
     simpleBagV0().fetchFiles shouldBe empty
+  }
+
+  "withEasyUserAccount" should "add EASY-User-Account to bag-info.txt" in {
+    val bag = simpleBagV0().withEasyUserAccount("someAccount")
+    bag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+    bag.bagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY) shouldBe Seq("""someAccount""")
+  }
+
+  "withoutEasyUserAccount" should "remove EASY-User-Account to bag-info.txt" in {
+    val bag = simpleBagV0().withEasyUserAccount("someAccount")
+    bag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+    bag.withoutEasyUserAccount().bagInfo shouldNot contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
   }
 
   "addFetch" should "add the fetch item to the bag's list of fetch items" in {

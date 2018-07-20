@@ -162,6 +162,17 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     removeBagInfo(DansV0Bag.IS_VERSION_OF_KEY)
   }
 
+  override def withEasyUserAccount(userId: String): DansV0Bag = {
+    withoutEasyUserAccount()
+      .locBag.getMetadata.add(DansV0Bag.EASY_USER_ACCOUNT_KEY, userId)
+
+    this
+  }
+
+  override def withoutEasyUserAccount(): DansV0Bag = {
+    removeBagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY)
+  }
+
   /**
    * @inheritdoc
    */
@@ -660,6 +671,7 @@ object DansV0Bag {
   val CREATED_KEY = "Created"
   val dateTimeFormatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
   val IS_VERSION_OF_KEY = "Is-Version-Of"
+  val EASY_USER_ACCOUNT_KEY = "EASY-User-Account"
 
   /**
    * Create an empty bag at the given `baseDir`. Based on the given `algorithms`, (empty)
