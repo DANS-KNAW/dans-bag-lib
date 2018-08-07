@@ -490,8 +490,6 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
-   * @example
-   * {{{ dir.children.map(f => bag.addPayloadFile(f, dir.relativize(f))) }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInData  the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
@@ -511,6 +509,10 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   * dir.children.map(f => bag.addPayloadFile(f, dir.relativize(f)))
+   * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInData  the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
@@ -604,7 +606,9 @@ trait DansBag {
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
    * @example
-   * {{{ addTagFile("blabla".asInputStream)(_ / "metadata" / "message-from-depositor.txt") }}}
+   * {{{
+   * addTagFile("blabla".asInputStream)(_ / "metadata" / "message-from-depositor.txt")
+   * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInBag   the path relative to the bag's base directory where the new file is being placed
    * @return this bag, with the added checksums of the new tag file
