@@ -2205,7 +2205,7 @@ class DansV0BagSpec extends TestSupportFixture
     bag.toJava should exist
     //    bag.isChildOf(bag) shouldBe false // TODO why does this actually return true??? - https://github.com/pathikrit/better-files/issues/247
 
-    inside(bag.removeTagFile(identity)) {
+    inside(bag.removeTagFile(x => x)) {
       case Failure(e: IllegalArgumentException) =>
         e should have message "cannot remove the whole bag"
     }
