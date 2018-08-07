@@ -26,6 +26,7 @@ import gov.loc.repository.bagit.creator.BagCreator
 import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, FetchItem => LocFetchItem, Manifest => LocManifest, Metadata => LocMetadata }
 import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.util.PathUtils
+import gov.loc.repository.bagit.verify.BagVerifier
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
 import nl.knaw.dans.bag.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
 import nl.knaw.dans.bag.{ ChecksumAlgorithm, DansBag, FetchItem, RelativePath, betterFileToPath }
@@ -696,6 +697,22 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     for (file <- this.glob("tagmanifest-*.txt"))
       file.delete()
     ManifestWriter.writeTagManifests(locBag.getTagManifests, baseDir, baseDir, fileEncoding)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def isComplete: Either[String, Unit] = {
+    Try { new ManagedResource(new BagVerifier()).apply(_.isComplete(this.locBag, false)) }
+      .toEither.left.map(_.getMessage)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def isValid: Either[String, Unit] = {
+    Try { new ManagedResource(new BagVerifier()).apply(_.isValid(this.locBag, false)) }
+      .toEither.left.map(_.getMessage)
   }
 
   protected def validateURL(url: URL): Unit = {
