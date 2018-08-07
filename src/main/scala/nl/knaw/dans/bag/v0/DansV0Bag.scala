@@ -303,14 +303,14 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def replaceFileWithFetchItem(pathInData: Path, url: URL): Try[DansBag] = {
+  def replaceFileWithFetchItem(pathInData: Path, url: URL): Try[DansV0Bag] = {
     replaceFileWithFetchItem(_ / pathInData.toString, url)
   }
 
   /**
    * @inheritdoc
    */
-  override def replaceFileWithFetchItem(pathInData: RelativePath, url: URL): Try[DansBag] = Try {
+  override def replaceFileWithFetchItem(pathInData: RelativePath, url: URL): Try[DansV0Bag] = Try {
     val srcPath = pathInData(data)
 
     if (srcPath.notExists)
@@ -331,14 +331,14 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def replaceFetchItemWithFile(pathInData: Path): Try[DansBag] = {
+  def replaceFetchItemWithFile(pathInData: Path): Try[DansV0Bag] = {
     replaceFetchItemWithFile(_ / pathInData.toString)
   }
 
   /**
    * @inheritdoc
    */
-  override def replaceFetchItemWithFile(pathInData: RelativePath): Try[DansBag] = Try {
+  override def replaceFetchItemWithFile(pathInData: RelativePath): Try[DansV0Bag] = Try {
     val destinationPath = pathInData(data)
 
     fetchFiles.find(_.file == destinationPath)
@@ -351,7 +351,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def replaceFetchItemWithFile(url: URL): Try[DansBag] = Try {
+  override def replaceFetchItemWithFile(url: URL): Try[DansV0Bag] = Try {
     validateURL(url)
 
     fetchFiles.find(_.url == url)
@@ -364,7 +364,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def replaceFetchItemWithFile(item: FetchItem): Try[DansBag] = Try {
+  override def replaceFetchItemWithFile(item: FetchItem): Try[DansV0Bag] = Try {
     if (!locBag.getItemsToFetch.contains(item: LocFetchItem)) {
       throw new IllegalArgumentException(s"fetch item $item does not occur in the list of fetch files")
     }
