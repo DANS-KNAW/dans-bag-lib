@@ -19,7 +19,7 @@ import java.nio.file.NoSuchFileException
 import java.util.UUID
 
 import better.files.File
-import nl.knaw.dans.bag.DepositProperties._
+import nl.knaw.dans.bag.DepositProperties.{ stateDescription, _ }
 import nl.knaw.dans.bag.SpringfieldPlayMode.SpringfieldPlayMode
 import nl.knaw.dans.bag.StageState.StageState
 import nl.knaw.dans.bag.StateLabel.StateLabel
@@ -40,8 +40,9 @@ case class DepositProperties(creation: Creation = Creation(),
                              staged: Staged = Staged()) {
 
   /**
-   * Writes the DepositProperties to `file` on the filesystem
-   * @param file the file-location to serialize the properties to
+   * Writes the `DepositProperties` to `file` on the filesystem.
+   *
+   * @param file the file location to serialize the properties to
    * @return `scala.util.Success` if the save was performed successfully,
    *         `scala.util.Failure` otherwise
    */
@@ -100,11 +101,12 @@ object DepositProperties {
   // @formatter:on
 
   /**
-   * Creates a DepositProperties object, with only mandatory properties set
-   * @param state the `State` to be set
+   * Creates a `DepositProperties` object, with only the mandatory properties set.
+   *
+   * @param state     the `State` to be set
    * @param depositor the accountname of the depositor
-   * @param bagStore the bagId to be used for this deposit
-   * @return returns a new DepositProperties
+   * @param bagStore  the bagId to be used for this deposit
+   * @return a new `DepositProperties`
    */
   def from(state: State, depositor: Depositor, bagStore: BagStore): DepositProperties = {
     DepositProperties(
@@ -115,10 +117,11 @@ object DepositProperties {
   }
 
   /**
-   * Reads a File as a deposit.properties file
-   * @param propertiesFile
-   * @return if successful it returns the DepositProperties representing the `propertiesFile`,
-   *         else a Failure with a NoSuchFileException is returned
+   * Reads a `File` as a `deposit.properties` file.
+   *
+   * @param propertiesFile the file to be converted to a `DepositProperties`
+   * @return if successful the `DepositProperties` representing the `propertiesFile`,
+   *         else a Failure with a NoSuchFileException
    */
   def read(propertiesFile: File): Try[DepositProperties] = {
     if (propertiesFile.exists && propertiesFile.isRegularFile)
@@ -133,25 +136,39 @@ object DepositProperties {
   }
 
   /**
-   * Loads a new DepositProperties object with the corresponding elements from the PropertiesConfiguration
-   * @param properties the PropertiesConfiguration containing all mandatory deposit properties
-   * @return if successful it returns a new DepositProperties representing the provided `properties`
-   *         else a Failure with a NoSuchElementException if not all deposit properties were present
+   * Loads a new `DepositProperties` object with the corresponding elements from the
+   * `PropertiesConfiguration`. `properties` should at least contain all mandatory properties.
+   *
+   * @param properties the `PropertiesConfiguration` containing at least all mandatory deposit properties
+   * @return if successful a new `DepositProperties` representing the provided `properties`
+   *         else a `Failure` with a `NoSuchElementException` if not all deposit properties were present
    */
   def load(properties: PropertiesConfiguration): Try[DepositProperties] = Try {
+    val creationTimestampValue = properties.getString(creationTimestamp)
+    val stateLabelValue = properties.getString(stateLabel)
+    val stateDescriptionValue = properties.getString(stateDescription)
+    val depositorUserIdValue = properties.getString(depositorUserId)
+    val bagStoreBagIdValue = properties.getString(bagStoreBagId)
+
+    require(creationTimestampValue != null, s"could not find mandatory field '$creationTimestamp'")
+    require(stateLabelValue != null, s"could not find mandatory field '$stateLabel'")
+    require(stateDescriptionValue != null, s"could not find mandatory field '$stateDescription'")
+    require(depositorUserIdValue != null, s"could not find mandatory field '$depositorUserId'")
+    require(bagStoreBagIdValue != null, s"could not find mandatory field '$bagStoreBagId'")
+
     DepositProperties(
       creation = new Creation(
-        timestamp = properties.getString(creationTimestamp)
+        timestamp = creationTimestampValue
       ),
       state = new State(
-        label = properties.getString(stateLabel),
-        description = properties.getString(stateDescription)
+        label = stateLabelValue,
+        description = stateDescriptionValue
       ),
       depositor = Depositor(
-        userId = properties.getString(depositorUserId)
+        userId = depositorUserIdValue
       ),
       bagStore = new BagStore(
-        bagId = properties.getString(bagStoreBagId),
+        bagId = bagStoreBagIdValue,
         archived = properties.getString(bagStoreArchived)
       ),
       identifier = Identifier(
