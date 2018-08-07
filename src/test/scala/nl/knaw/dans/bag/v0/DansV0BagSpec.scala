@@ -18,7 +18,7 @@ package nl.knaw.dans.bag.v0
 import java.io.IOException
 import java.net._
 import java.nio.charset.StandardCharsets
-import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException }
+import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Paths }
 import java.util.UUID
 
 import better.files.File
@@ -780,7 +780,7 @@ class DansV0BagSpec extends TestSupportFixture
 
     bag.fetchFiles.map(_.file) should contain(absolutePath)
 
-    inside(bag.removeFetchItem(relativePath)) {
+    inside(bag.removeFetchItem(Paths.get("x"))) {
       case Success(resultBag) =>
         resultBag.fetchFiles.map(_.file) should not contain absolutePath
     }
@@ -796,7 +796,7 @@ class DansV0BagSpec extends TestSupportFixture
         manifest should contain key absolutePath
     }
 
-    inside(bag.removeFetchItem(relativePath)) {
+    inside(bag.removeFetchItem(Paths.get("x"))) {
       case Success(resultBag) =>
         forEvery(resultBag.payloadManifests) {
           case (_, manifest) =>
@@ -808,10 +808,10 @@ class DansV0BagSpec extends TestSupportFixture
   it should "remove fetch.txt from all tag manifests when the last fetch file was removed" in {
     val bag = fetchBagV0()
 
-    val relativePath1: RelativePath = _ / "x"
-    val relativePath2: RelativePath = _ / "y-old"
-    val relativePath3: RelativePath = _ / "sub" / "u"
-    val relativePath4: RelativePath = _ / "sub" / "v"
+    val relativePath1 = Paths.get("x")
+    val relativePath2 = Paths.get("y-old")
+    val relativePath3 = Paths.get("sub/u")
+    val relativePath4 = Paths.get("sub/v")
 
     forEvery(bag.tagManifests) {
       case (_, manifest) =>
@@ -1684,7 +1684,7 @@ class DansV0BagSpec extends TestSupportFixture
     newDir / "sub" / "subsub" / "file4.txt" createIfNotExists (createParents = true) writeText lipsum(4)
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
 
-    inside(newDir.inputStream()(bag.addPayloadFile(_)(relativeDest))) {
+    inside(newDir.inputStream()(bag.addPayloadFile(_, Paths.get("path/to/newDir")))) {
       case Failure(e: IOException) =>
         e should have message "Is a directory"
     }
@@ -1703,7 +1703,7 @@ class DansV0BagSpec extends TestSupportFixture
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
     val dest = relativeDest(bag.data)
 
-    inside(bag.addPayloadFile(newDir)(relativeDest)) {
+    inside(bag.addPayloadFile(newDir, Paths.get("path/to/newDir"))) {
       case Success(resultBag) =>
         val files = Set(file1, file2, file3, file4, file5)
           .map(file => dest / newDir.relativize(file).toString)
@@ -2077,7 +2077,7 @@ class DansV0BagSpec extends TestSupportFixture
     newDir / "sub" / "subsub" / "file4.txt" createIfNotExists (createParents = true) writeText lipsum(4)
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
 
-    inside(newDir.inputStream()(bag.addTagFile(_)(relativeDest))) {
+    inside(newDir.inputStream()(bag.addTagFile(_, Paths.get("path/to/newDir")))) {
       case Failure(e: IOException) =>
         e should have message "Is a directory"
     }
@@ -2096,7 +2096,7 @@ class DansV0BagSpec extends TestSupportFixture
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
     val dest = relativeDest(bag)
 
-    inside(bag.addTagFile(newDir)(relativeDest)) {
+    inside(bag.addTagFile(newDir, Paths.get("path/to/newDir"))) {
       case Success(resultBag) =>
         val files = Set(file1, file2, file3, file4, file5)
           .map(file => dest / newDir.relativize(file).toString)
