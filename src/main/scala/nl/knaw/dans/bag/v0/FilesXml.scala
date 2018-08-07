@@ -26,7 +26,7 @@ case class FilesXml() {
 
   /**
    * Saves the serialized FilesXml at the given location
-   * @param file the location on FS to save the FilesXml object to
+   * @param file the location on the file system to save the FilesXml object to
    * @return `scala.util.Success` if the save was performed successfully,
    *         `scala.util.Failure` otherwise
    */
@@ -53,10 +53,9 @@ object FilesXml {
   def add(item: FilesXmlItem): Try[Unit] = ???
   //TODO: check that the pathInData exists
 
-
   /**
-   * Given an access category of a dataset, returns the inferred accessibleToRights FileAccessCategory, according to
-   * the V0 rules
+   * Given an access category of a dataset, returns the inferred accessibleToRights FileAccessCategory,
+   * according to the DansBagitProfile-v0 rules
    *
    * @param datasetAccessCategory
    * @return returns the inferred accessibleToRights
@@ -72,8 +71,8 @@ object FilesXml {
   }
 
   /**
-   * Given an access category of a dataset, returns the inferred visibleToRights FileAccessCategory, according to
-   * the V0 rules
+   * Given an access category of a dataset, returns the inferred visibleToRights FileAccessCategory,
+   * according to the DansBagitProfile-v0 rules
    *
    * @param datasetAccessCategory
    * @return returns the inferred visibleToRights
@@ -82,7 +81,6 @@ object FilesXml {
     FileAccessCategory.ANONYMOUS
   }
 }
-
 
 /**
  *
@@ -100,8 +98,8 @@ case class FilesXmlItem(pathInData: RelativePath,
                        ) {
 
   val filepath: String = pathInData.toString()
-
 }
+
 case class FileFormat(fileFormat: String)
 
 case class DcTermsElement(tag: DcTermsElementType, value: String, language: Option[XmlLang] = None)
