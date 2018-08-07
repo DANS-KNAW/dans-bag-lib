@@ -626,6 +626,11 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   *
+   * @example
+   * {{{
+   * addTagFile("blabla".asInputStream, Paths.get("path/to/files"))
+   * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInBag   the path relative to the bag's base directory where the new file is being placed
    * @return this bag, with the added checksums of the new tag file
