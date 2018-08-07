@@ -447,7 +447,7 @@ object Deposit {
       for {
         newBagDir <- moveBag(bagDir, bagStore.bagId)
         bag <- DansBag.read(newBagDir)
-        properties = DepositProperties.empty(state, depositor, bagStore)
+        properties = DepositProperties.from(state, depositor, bagStore)
         _ <- properties.save(depositProperties(bagDir))
       } yield new Deposit(bagDir, bag, properties)
   }
