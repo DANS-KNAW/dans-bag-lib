@@ -402,7 +402,8 @@ object Deposit {
    * @param bagInfo    the entries to be added to `bag-info.txt`
    * @param state      the state to be set in the deposit.properties' state.label
    * @param depositor  the depositor to be set in the deposit.properties' depositor.userId
-   * @param bagStore   the bagId for the bag-dir in this Deposit
+   * @param bagStore   the BagStore containing the target bag-store and the bagId for the bag-dir in
+   *                   this Deposit
    * @return if successful, returns a `nl.knaw.dans.bag.Deposit` object representing the deposit
    *         located at `payloadDir` else returns an exception
    */
@@ -431,7 +432,8 @@ object Deposit {
    *               will be moved to the bag directory within the deposit
    * @param state the state to be set in the deposit.properties' state.label
    * @param depositor the depositor to be set in the deposit.properties' depositor.userId
-   * @param bagStore the bagId for the bag-dir in this Deposit
+   * @param bagStore the BagStore containing the target bag-store and the bagId for the bag-dir in
+   *                 this Deposit
    * @return if successful, returns a `nl.knaw.dans.bag.Deposit` object representing the deposit
    *         located at `bagDir`, else returns an exception
    */
