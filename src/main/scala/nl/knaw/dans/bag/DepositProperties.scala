@@ -171,15 +171,15 @@ object DepositProperties {
         bagId = bagStoreBagIdValue,
         archived = properties.getString(bagStoreArchived)
       ),
-      identifier = Identifier(
-        doi = Option(properties.getString(doiIdentifier))
+      identifier = new Identifier(
+        doi = properties.getString(doiIdentifier)
       ),
       curation = new Curation(
-        userId = Option(properties.getString(dataManagerUserId)),
-        email = Option(properties.getString(datamanagerEmail)),
-        isNewVersion = Option(properties.getString(isNewVersion)),
-        required = Option(properties.getString(curationRequired)),
-        performed = Option(properties.getString(curationPerformed))
+        userId = properties.getString(dataManagerUserId),
+        email = properties.getString(datamanagerEmail),
+        isNewVersion = properties.getString(isNewVersion),
+        required = properties.getString(curationRequired),
+        performed = properties.getString(curationPerformed)
       ),
       springfield = new Springfield(
         domain = properties.getString(springfieldDomain),
@@ -223,14 +223,14 @@ case class State(label: StateLabel, description: String) {
 
 case class Depositor(userId: String)
 
-case class Identifier(doi: Option[String] = None)
+case class Identifier(doi: Option[String] = None) {
+  def this(doi: String) = {
+    this(Option(doi))
+  }
+}
 
 case class BagStore(bagId: UUID,
                     archived: Option[Boolean] = None) {
-  def this(bagId: UUID, archived: Boolean) = {
-    this(bagId, Option(archived))
-  }
-
   def this(bagId: String, archived: String) = {
     this(UUID.fromString(bagId), Option(archived).map(BooleanUtils.toBoolean))
   }
@@ -247,15 +247,15 @@ case class Curation(dataManager: DataManager = DataManager(),
                     isNewVersion: Option[Boolean] = Option.empty,
                     required: Option[Boolean] = Option.empty,
                     performed: Option[Boolean] = Option.empty) {
-  def this(userId: Option[String],
-           email: Option[String],
-           isNewVersion: Option[String],
-           required: Option[String],
-           performed: Option[String]) = {
-    this(DataManager(userId, email),
-      isNewVersion.map(BooleanUtils.toBoolean),
-      required.map(BooleanUtils.toBoolean),
-      performed.map(BooleanUtils.toBoolean),
+  def this(userId: String,
+           email: String,
+           isNewVersion: String,
+           required: String,
+           performed: String) = {
+    this(DataManager(Option(userId), Option(email)),
+      Option(isNewVersion).map(BooleanUtils.toBoolean),
+      Option(required).map(BooleanUtils.toBoolean),
+      Option(performed).map(BooleanUtils.toBoolean),
     )
   }
 
