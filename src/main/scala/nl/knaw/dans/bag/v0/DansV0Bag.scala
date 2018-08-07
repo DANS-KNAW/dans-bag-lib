@@ -23,10 +23,10 @@ import java.util.{ UUID, Set => jSet }
 
 import better.files.{ CloseableOps, Disposable, File, Files, ManagedResource }
 import gov.loc.repository.bagit.creator.BagCreator
-import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, Manifest => LocManifest, Metadata => LocMetadata, FetchItem => LocFetchItem }
+import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, FetchItem => LocFetchItem, Manifest => LocManifest, Metadata => LocMetadata }
 import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.util.PathUtils
-import gov.loc.repository.bagit.verify.FileCountAndTotalSizeVistor
+import gov.loc.repository.bagit.verify.{ BagVerifier, FileCountAndTotalSizeVistor }
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
 import nl.knaw.dans.bag.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
 import nl.knaw.dans.bag.{ ChecksumAlgorithm, DansBag, FetchItem, RelativePath, betterFileToPath }
@@ -186,7 +186,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
       .map(_.asScala)
       .collect {
         case Seq(userId) => userId
-        case userIds if userIds.size > 1 => throw new IllegalStateException(s"Only one EASY-User-Account allowed; found ${userIds.size}")
+        case userIds if userIds.size > 1 => throw new IllegalStateException(s"Only one EASY-User-Account allowed; found ${ userIds.size }")
       }
   }
 
@@ -210,7 +210,9 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def fetchFiles: Seq[FetchItem] = locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  override def fetchFiles: Seq[FetchItem] = {
+    locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  }
 
   /**
    * @inheritdoc
@@ -221,7 +223,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     if (destinationPath.exists)
       throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in payload")
-    if (fetchFiles.find(_.file == destinationPath).isDefined)
+    if (fetchFiles.exists(_.file == destinationPath))
       throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in fetch.txt")
     if (!destinationPath.isChildOf(data))
       throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
@@ -454,7 +456,8 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def addPayloadFile(inputStream: InputStream)(pathInData: RelativePath): Try[DansV0Bag] = Try {
+  override def addPayloadFile(inputStream: InputStream)
+                             (pathInData: RelativePath): Try[DansV0Bag] = Try {
     val file = pathInData(data)
 
     if (file.exists)
@@ -633,6 +636,22 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     for (file <- this.glob("tagmanifest-*.txt"))
       file.delete()
     ManifestWriter.writeTagManifests(locBag.getTagManifests, baseDir, baseDir, fileEncoding)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def isComplete: Either[String, Unit] = {
+    Try { new ManagedResource(new BagVerifier()).apply(_.isComplete(this.locBag, false)) }
+      .toEither.left.map(_.getMessage)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def isValid: Either[String, Unit] = {
+    Try { new ManagedResource(new BagVerifier()).apply(_.isValid(this.locBag, false)) }
+      .toEither.left.map(_.getMessage)
   }
 
   protected def validateURL(url: URL): Unit = {
