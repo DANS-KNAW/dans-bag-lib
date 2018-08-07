@@ -50,7 +50,7 @@ class DepositSpec extends TestSupportFixture
     baseDir.toJava shouldNot exist
     bagDir.toJava shouldNot exist
 
-    inside(Deposit.empty(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
+    inside(Deposit.from(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
       case Success(deposit) =>
         baseDir.toJava should exist
         bagDir.toJava should exist
@@ -67,7 +67,7 @@ class DepositSpec extends TestSupportFixture
     val bagId = UUID.randomUUID()
     val bagStore = BagStore(bagId)
 
-    inside(Deposit.empty(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
+    inside(Deposit.from(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
       case Success(deposit) =>
         deposit.bag.baseDir.listRecursively.toList should contain only(
           deposit.bag.baseDir / "data",
@@ -88,7 +88,7 @@ class DepositSpec extends TestSupportFixture
     val bagId = UUID.randomUUID()
     val bagStore = BagStore(bagId)
 
-    inside(Deposit.empty(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
+    inside(Deposit.from(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
       case Success(deposit) =>
         (deposit.baseDir / "deposit.properties").toJava should exist
     }
@@ -103,7 +103,7 @@ class DepositSpec extends TestSupportFixture
     val bagId = UUID.randomUUID()
     val bagStore = BagStore(bagId)
 
-    inside(Deposit.empty(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
+    inside(Deposit.from(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
       case Success(deposit) =>
         val props = new PropertiesConfiguration(deposit.baseDir / "deposit.properties" toJava)
         props.getKeys.asScala.toList should contain only(
@@ -132,7 +132,7 @@ class DepositSpec extends TestSupportFixture
     val bagId = UUID.randomUUID()
     val bagStore = BagStore(bagId)
 
-    inside(Deposit.empty(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
+    inside(Deposit.from(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
       case Success(deposit) =>
         deposit.creationTimestamp shouldBe fixedDateTimeNow
         deposit.stateLabel shouldBe state.label
@@ -175,7 +175,7 @@ class DepositSpec extends TestSupportFixture
     baseDir.toJava should exist
     baseDir.isRegularFile shouldBe true
 
-    inside(Deposit.empty(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
+    inside(Deposit.from(baseDir, algorithms, bagInfo, state, depositor, bagStore)) {
       case Failure(e: FileAlreadyExistsException) =>
         e should have message baseDir.toString()
     }
