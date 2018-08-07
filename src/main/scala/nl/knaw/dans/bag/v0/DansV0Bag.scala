@@ -23,9 +23,10 @@ import java.util.{ UUID, Set => jSet }
 
 import better.files.{ CloseableOps, Disposable, File, Files, ManagedResource }
 import gov.loc.repository.bagit.creator.BagCreator
-import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, Manifest => LocManifest, Metadata => LocMetadata, FetchItem => LocFetchItem }
+import gov.loc.repository.bagit.domain.{ Version, Bag => LocBag, FetchItem => LocFetchItem, Manifest => LocManifest, Metadata => LocMetadata }
 import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.util.PathUtils
+import gov.loc.repository.bagit.verify.{ BagVerifier, FileCountAndTotalSizeVistor }
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
 import nl.knaw.dans.bag.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
 import nl.knaw.dans.bag.{ ChecksumAlgorithm, DansBag, FetchItem, RelativePath, betterFileToPath }
@@ -185,7 +186,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
       .map(_.asScala)
       .collect {
         case Seq(userId) => userId
-        case userIds if userIds.size > 1 => throw new IllegalStateException(s"Only one EASY-User-Account allowed; found ${userIds.size}")
+        case userIds if userIds.size > 1 => throw new IllegalStateException(s"Only one EASY-User-Account allowed; found ${ userIds.size }")
       }
   }
 
@@ -209,7 +210,9 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def fetchFiles: Seq[FetchItem] = locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  override def fetchFiles: Seq[FetchItem] = {
+    locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  }
 
   /**
    * @inheritdoc
@@ -220,7 +223,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     if (destinationPath.exists)
       throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in payload")
-    if (fetchFiles.find(_.file == destinationPath).isDefined)
+    if (fetchFiles.exists(_.file == destinationPath))
       throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in fetch.txt")
     if (!destinationPath.isChildOf(data))
       throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
@@ -453,7 +456,8 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def addPayloadFile(inputStream: InputStream)(pathInData: RelativePath): Try[DansV0Bag] = Try {
+  override def addPayloadFile(inputStream: InputStream)
+                             (pathInData: RelativePath): Try[DansV0Bag] = Try {
     val file = pathInData(data)
 
     if (file.exists)
@@ -606,9 +610,10 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     // save bag-info.txt file
     locBag.getMetadata.upsertPayloadOxum(PathUtils.generatePayloadOxum(data))
-    locBag.getMetadata.remove("Bagging-Date") //remove the old bagging date if it exists so that there is only one
-    locBag.getMetadata.add("Bagging-Date", DateTime.now().toString(ISODateTimeFormat.yearMonthDay()))
-    // TODO calculate correct Bag-Size property
+    locBag.getMetadata.remove(DansV0Bag.BAGGING_DATE_KEY) //remove the old bagging date if it exists so that there is only one
+    locBag.getMetadata.add(DansV0Bag.BAGGING_DATE_KEY, DateTime.now().toString(ISODateTimeFormat.yearMonthDay()))
+    locBag.getMetadata.remove(DansV0Bag.BAG_SIZE_KEY) // remove the old bag size if it exists so that there is only one
+    locBag.getMetadata.add(DansV0Bag.BAG_SIZE_KEY, formatSize(calculateSizeOfPath(data)))
     MetadataWriter.writeBagMetadata(locBag.getMetadata, bagitVersion, baseDir, fileEncoding)
 
     // save fetch.txt file
@@ -631,6 +636,22 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     for (file <- this.glob("tagmanifest-*.txt"))
       file.delete()
     ManifestWriter.writeTagManifests(locBag.getTagManifests, baseDir, baseDir, fileEncoding)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def isComplete: Either[String, Unit] = {
+    Try { new ManagedResource(new BagVerifier()).apply(_.isComplete(this.locBag, false)) }
+      .toEither.left.map(_.getMessage)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def isValid: Either[String, Unit] = {
+    Try { new ManagedResource(new BagVerifier()).apply(_.isValid(this.locBag, false)) }
+      .toEither.left.map(_.getMessage)
   }
 
   protected def validateURL(url: URL): Unit = {
@@ -797,6 +818,36 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
         .toSet.asJava
     }
   }
+
+  private def calculateSizeOfPath(dir: File): Long = {
+    val visitor = new FileCountAndTotalSizeVistor
+    jFiles.walkFileTree(dir.path, visitor)
+    visitor.getTotalSize
+  }
+
+  private val kb: Double = Math.pow(2, 10)
+  private val mb: Double = Math.pow(2, 20)
+  private val gb: Double = Math.pow(2, 30)
+  private val tb: Double = Math.pow(2, 40)
+
+  private def formatSize(octets: Long): String = {
+    def approximate(octets: Long): (String, Double) = {
+      octets match {
+        case o if o < mb => ("KB", kb)
+        case o if o < gb => ("MB", mb)
+        case o if o < tb => ("GB", gb)
+        case _ => ("TB", tb)
+      }
+    }
+
+    val (unit, div) = approximate(octets)
+    val size = octets / div
+    val sizeString = f"$size%1.1f"
+    val string = if (sizeString endsWith ".0") size.toInt.toString
+                 else sizeString
+
+    s"$string $unit"
+  }
 }
 
 object DansV0Bag {
@@ -806,6 +857,8 @@ object DansV0Bag {
   val dateTimeFormatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
   val IS_VERSION_OF_KEY = "Is-Version-Of"
   val EASY_USER_ACCOUNT_KEY = "EASY-User-Account"
+  private val BAGGING_DATE_KEY = "Bagging-Date"
+  private val BAG_SIZE_KEY = "Bag-Size"
 
   /**
    * Create an empty bag at the given `baseDir`. Based on the given `algorithms`, (empty)
