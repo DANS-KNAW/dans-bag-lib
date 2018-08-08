@@ -612,26 +612,6 @@ class DansV0BagSpec extends TestSupportFixture
     resultBag2.bagInfo shouldNot contain key DansV0Bag.IS_VERSION_OF_KEY
   }
 
-  "fetchFiles" should "list all entries in the fetch.txt files" in {
-    val bag = fetchBagV0()
-    bag.fetchFiles should contain only(
-      FetchItem(lipsum1URL, 12L, bag.data / "sub" / "u"),
-      FetchItem(lipsum2URL, 12L, bag.data / "sub" / "v"),
-      FetchItem(lipsum3URL, 12L, bag.data / "y-old"),
-      FetchItem(lipsum4URL, 12L, bag.data / "x"),
-    )
-  }
-
-  it should "return an empty list when the bag doesn't have a fetch.txt file" in {
-    simpleBagV0().fetchFiles shouldBe empty
-  }
-
-  it should "return an empty list when the bag has an empty fetch.txt file" in {
-    simpleBagDirV0 / "fetch.txt" touch()
-
-    simpleBagV0().fetchFiles shouldBe empty
-  }
-
   "easyUserAccount" should "return Success(Option.empty) if no account present" in {
     simpleBagV0().easyUserAccount shouldBe Success(Option.empty)
   }
@@ -659,6 +639,26 @@ class DansV0BagSpec extends TestSupportFixture
     val bag = simpleBagV0().withEasyUserAccount("someAccount")
     bag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
     bag.withoutEasyUserAccount().bagInfo shouldNot contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+  }
+
+  "fetchFiles" should "list all entries in the fetch.txt files" in {
+    val bag = fetchBagV0()
+    bag.fetchFiles should contain only(
+      FetchItem(lipsum1URL, 12L, bag.data / "sub" / "u"),
+      FetchItem(lipsum2URL, 12L, bag.data / "sub" / "v"),
+      FetchItem(lipsum3URL, 12L, bag.data / "y-old"),
+      FetchItem(lipsum4URL, 12L, bag.data / "x"),
+    )
+  }
+
+  it should "return an empty list when the bag doesn't have a fetch.txt file" in {
+    simpleBagV0().fetchFiles shouldBe empty
+  }
+
+  it should "return an empty list when the bag has an empty fetch.txt file" in {
+    simpleBagDirV0 / "fetch.txt" touch()
+
+    simpleBagV0().fetchFiles shouldBe empty
   }
 
   "addFetchItem with RelativePath" should "add the fetch item to the bag's list of fetch items" in {
