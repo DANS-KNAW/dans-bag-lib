@@ -561,6 +561,8 @@ trait DansBag {
    * the resolved destination is outside of the `bag/data` directory, this method will return a
    * `scala.util.Failure`. This method also adds the checksum of the new file to all payload manifests.
    *
+   * When `src` is a directory, each file will in that directory will be copied into the payload directory.
+   *
    * Please note that fetch files are also considered part of the payload files. Therefore it is not
    * allowed to add a payload file using this method that is already declared in `fetch.txt`.
    *
@@ -569,7 +571,11 @@ trait DansBag {
    *
    * @example
    * {{{
+   *   // add a single file
    *   bag.addPayloadFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
+   *
+   *   // add a directory of files
+   *   bag.addPayloadFile(srcDir)(_ / "path" / "to" / "some" / "directory")
    * }}}
    * @param src        the source of the new file to be added to the bag
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
@@ -583,6 +589,8 @@ trait DansBag {
    * the resolved destination is outside of the `bag/data` directory, this method will return a
    * `scala.util.Failure`. This method also adds the checksum of the new file to all payload manifests.
    *
+   * When `src` is a directory, each file will in that directory will be copied into the payload directory.
+   *
    * Please note that fetch files are also considered part of the payload files. Therefore it is not
    * allowed to add a payload file using this method that is already declared in `fetch.txt`.
    *
@@ -591,11 +599,11 @@ trait DansBag {
    *
    * @example
    * {{{
-   *   // hardcoded path
+   *   // add a single file
    *   bag.addPayloadFile(srcFile, Paths.get("path/to/some/file.txt"))
    *
-   *   // add all files from a source directory to the payload
-   *   dir.children.map(f => bag.addPayloadFile(f, dir.relativize(f)))
+   *   // add a directory of files
+   *   bag.addPayloadFile(srcDir, Paths.get("path/to/some/directory"))
    * }}}
    * @param src        the source of the new file to be added to the bag
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
@@ -700,12 +708,18 @@ trait DansBag {
    * `manifest-*.txt` or `tagmanifest-*.txt`) this method will return a  `scala.util.Failure`.
    * This method also adds the checksum of the new file to all tag manifests.
    *
+   * When `src` is a directory, each file will in that directory will be copied into the payload directory.
+   *
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
    * @example
    * {{{
+   *   // add a single file
    *   bag.addTagFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
+   *
+   *   // add a directory of files
+   *   bag.addTagFile(srcDir)(_ / "path" / "to" / "some" / "directory")
    * }}}
    * @param src       the source of the new file to be added to the bag
    * @param pathInBag the path relative to the bag's base directory where the new file is being placed
@@ -721,16 +735,18 @@ trait DansBag {
    * `manifest-*.txt` or `tagmanifest-*.txt`) this method will return a  `scala.util.Failure`.
    * This method also adds the checksum of the new file to all tag manifests.
    *
+   * When `src` is a directory, each file will in that directory will be copied into the payload directory.
+   *
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
    * @example
    * {{{
-   *   // hardcoded path
+   *   // add a single file
    *   bag.addTagFile(srcFile, Paths.get("path/to/some/file.txt"))
    *
-   *   // add all files from a source directory to the payload
-   *   dir.children.map(f => bag.addTagFile(f, dir.relativize(f)))
+   *   // add a directory of files
+   *   bag.addTagFile(srcDir, Paths.get("path/to/some/directory"))
    * }}}
    * @param src       the source of the new file to be added to the bag
    * @param pathInBag the path relative to the bag's base directory where the new file is being placed
