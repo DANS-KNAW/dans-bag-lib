@@ -186,7 +186,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
       .map(_.asScala)
       .collect {
         case Seq(userId) => userId
-        case userIds if userIds.size > 1 => throw new IllegalStateException(s"Only one EASY-User-Account allowed; found ${userIds.size}")
+        case userIds if userIds.size > 1 => throw new IllegalStateException(s"Only one EASY-User-Account allowed; found ${ userIds.size }")
       }
   }
 
@@ -210,7 +210,9 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def fetchFiles: Seq[FetchItem] = locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  override def fetchFiles: Seq[FetchItem] = {
+    locBag.getItemsToFetch.asScala.map(fetch => fetch: FetchItem)
+  }
 
   /**
    * @inheritdoc
@@ -228,7 +230,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     if (destinationPath.exists)
       throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in payload")
-    if (fetchFiles.find(_.file == destinationPath).isDefined)
+    if (fetchFiles.exists(_.file == destinationPath))
       throw new FileAlreadyExistsException(destinationPath.toString(), null, "already exists in fetch.txt")
     if (!destinationPath.isChildOf(data))
       throw new IllegalArgumentException(s"a fetch file can only point to a location inside the bag/data directory; $destinationPath is outside the data directory")
@@ -489,7 +491,8 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def addPayloadFile(inputStream: InputStream)(pathInData: RelativePath): Try[DansV0Bag] = Try {
+  override def addPayloadFile(inputStream: InputStream)
+                             (pathInData: RelativePath): Try[DansV0Bag] = Try {
     val file = pathInData(data)
 
     if (file.exists)
@@ -512,6 +515,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   def addPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
     addPayloadFile(src)(_ / pathInData.toString)
   }
+
   /**
    * @inheritdoc
    */
@@ -527,6 +531,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   def removePayloadFile(pathInData: Path): Try[DansV0Bag] = {
     removePayloadFile(_ / pathInData.toString)
   }
+
   /**
    * @inheritdoc
    */
@@ -557,6 +562,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   def addTagFile(inputStream: InputStream, pathInBag: Path): Try[DansV0Bag] = {
     addTagFile(inputStream)(_ / pathInBag.toString)
   }
+
   /**
    * @inheritdoc
    */
@@ -605,6 +611,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   def addTagFile(src: File, pathInBag: Path): Try[DansV0Bag] = {
     addTagFile(src: File)(_ / pathInBag.toString)
   }
+
   /**
    * @inheritdoc
    */
@@ -613,6 +620,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     this
   }
+
   /**
    * @inheritdoc
    */
