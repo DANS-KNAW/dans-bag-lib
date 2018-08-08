@@ -217,7 +217,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def addFetchItem(url: URL, pathInData: Path): Try[DansV0Bag] = {
+  override def addFetchItem(url: URL, pathInData: Path): Try[DansV0Bag] = {
     addFetchItem(url, _ / pathInData.toString)
   }
 
@@ -262,7 +262,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def removeFetchItem(pathInData: Path): Try[DansV0Bag] = {
+  override def removeFetchItem(pathInData: Path): Try[DansV0Bag] = {
     removeFetchItem(_ / pathInData.toString)
   }
 
@@ -306,7 +306,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def replaceFileWithFetchItem(pathInData: Path, url: URL): Try[DansV0Bag] = {
+  override def replaceFileWithFetchItem(pathInData: Path, url: URL): Try[DansV0Bag] = {
     replaceFileWithFetchItem(_ / pathInData.toString, url)
   }
 
@@ -334,7 +334,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def replaceFetchItemWithFile(pathInData: Path): Try[DansV0Bag] = {
+  override def replaceFetchItemWithFile(pathInData: Path): Try[DansV0Bag] = {
     replaceFetchItemWithFile(_ / pathInData.toString)
   }
 
@@ -484,7 +484,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def addPayloadFile(inputStream: InputStream, pathInData: Path): Try[DansV0Bag] = {
+  override def addPayloadFile(inputStream: InputStream, pathInData: Path): Try[DansV0Bag] = {
     addPayloadFile(inputStream)(_ / pathInData.toString)
   }
 
@@ -512,7 +512,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def addPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
+  override def addPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
     addPayloadFile(src)(_ / pathInData.toString)
   }
 
@@ -528,7 +528,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def removePayloadFile(pathInData: Path): Try[DansV0Bag] = {
+  override def removePayloadFile(pathInData: Path): Try[DansV0Bag] = {
     removePayloadFile(_ / pathInData.toString)
   }
 
@@ -559,7 +559,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def addTagFile(inputStream: InputStream, pathInBag: Path): Try[DansV0Bag] = {
+  override def addTagFile(inputStream: InputStream, pathInBag: Path): Try[DansV0Bag] = {
     addTagFile(inputStream)(_ / pathInBag.toString)
   }
 
@@ -608,7 +608,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def addTagFile(src: File, pathInBag: Path): Try[DansV0Bag] = {
+  override def addTagFile(src: File, pathInBag: Path): Try[DansV0Bag] = {
     addTagFile(src: File)(_ / pathInBag.toString)
   }
 
@@ -624,7 +624,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  def removeTagFile(pathInBag: Path): Try[DansV0Bag] = {
+  override def removeTagFile(pathInBag: Path): Try[DansV0Bag] = {
     removeTagFile(_ / pathInBag.toString)
   }
 
