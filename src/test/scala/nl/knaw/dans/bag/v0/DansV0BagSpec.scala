@@ -661,7 +661,7 @@ class DansV0BagSpec extends TestSupportFixture
     bag.withoutEasyUserAccount().bagInfo shouldNot contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
   }
 
-  "addFetchItem" should "add the fetch item to the bag's list of fetch items" in {
+  "addFetchItem with RelativePath" should "add the fetch item to the bag's list of fetch items" in {
     val fetchFileSrc = lipsum1URL
     assumeCanConnect(fetchFileSrc)
 
@@ -773,14 +773,28 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "removeFetchItem by File" should "remove the fetch item from the list" in {
+  "addFetchItem with java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val fetchFileSrc = lipsum1URL
+    assumeCanConnect(fetchFileSrc)
+
+    val bag = fetchBagV0()
+
+    inside(bag.addFetchItem(fetchFileSrc, Paths.get("to-be-fetched/lipsum1.txt"))) {
+      case Success(resultBag) =>
+        resultBag.fetchFiles should contain(
+          FetchItem(fetchFileSrc, lipsum1Size, bag.data / "to-be-fetched" / "lipsum1.txt")
+        )
+    }
+  }
+
+  "removeFetchItem with RelativePath" should "remove the fetch item from the list" in {
     val bag = fetchBagV0()
     val relativePath: RelativePath = _ / "x"
     val absolutePath = relativePath(bag.data)
 
     bag.fetchFiles.map(_.file) should contain(absolutePath)
 
-    inside(bag.removeFetchItem(Paths.get("x"))) {
+    inside(bag.removeFetchItem(relativePath)) {
       case Success(resultBag) =>
         resultBag.fetchFiles.map(_.file) should not contain absolutePath
     }
@@ -796,7 +810,7 @@ class DansV0BagSpec extends TestSupportFixture
         manifest should contain key absolutePath
     }
 
-    inside(bag.removeFetchItem(Paths.get("x"))) {
+    inside(bag.removeFetchItem(relativePath)) {
       case Success(resultBag) =>
         forEvery(resultBag.payloadManifests) {
           case (_, manifest) =>
@@ -808,10 +822,10 @@ class DansV0BagSpec extends TestSupportFixture
   it should "remove fetch.txt from all tag manifests when the last fetch file was removed" in {
     val bag = fetchBagV0()
 
-    val relativePath1 = Paths.get("x")
-    val relativePath2 = Paths.get("y-old")
-    val relativePath3 = Paths.get("sub/u")
-    val relativePath4 = Paths.get("sub/v")
+    val relativePath1: RelativePath = _ / "x"
+    val relativePath2: RelativePath = _ / "y-old"
+    val relativePath3: RelativePath = _ / "sub" / "u"
+    val relativePath4: RelativePath = _ / "sub" / "v"
 
     forEvery(bag.tagManifests) {
       case (_, manifest) =>
@@ -846,7 +860,20 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "removeFetchItem by URL" should "remove the fetch item from the list" in {
+  "removeFetchItem with java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = fetchBagV0()
+    val relativePath: RelativePath = _ / "x"
+    val absolutePath = relativePath(bag.data)
+
+    bag.fetchFiles.map(_.file) should contain(absolutePath)
+
+    inside(bag.removeFetchItem(Paths.get("x"))) {
+      case Success(resultBag) =>
+        resultBag.fetchFiles.map(_.file) should not contain absolutePath
+    }
+  }
+
+  "removeFetchItem with URL" should "remove the fetch item from the list" in {
     val bag = fetchBagV0()
     val url = lipsum1URL
 
@@ -919,7 +946,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "removeFetchItem by FetchItem" should "remove the fetch item from the list" in {
+  "removeFetchItem with FetchItem" should "remove the fetch item from the list" in {
     val bag = fetchBagV0()
     val fetchItem = bag.fetchFiles.head
 
@@ -984,7 +1011,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "replaceFileWithFetchItem" should "remove the file from the payload" in {
+  "replaceFileWithFetchItem with RelativePath" should "remove the file from the payload" in {
     val bag = fetchBagV0()
 
     (bag.data / "y").toJava should exist
@@ -1067,7 +1094,18 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "replaceFetchItemWithFile by File" should "resolve a fetch item by file" in {
+  "replaceFileWithFetchItem with java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = fetchBagV0()
+
+    (bag.data / "y").toJava should exist
+
+    inside(bag.replaceFileWithFetchItem(Paths.get("y"), new URL("http://y"))) {
+      case Success(resultBag) =>
+        (resultBag.data / "y").toJava shouldNot exist
+    }
+  }
+
+  "replaceFetchItemWithFile with RelativePath" should "resolve a fetch item by file" in {
     assumeCanConnect(lipsum4URL)
 
     val bag = fetchBagV0()
@@ -1090,7 +1128,21 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "replaceFetchItemWithFile by URL" should "resolve a fetch item by url" in {
+  "replaceFetchItemWithFile with java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    assumeCanConnect(lipsum4URL)
+
+    val bag = fetchBagV0()
+    val x = bag.data / "x"
+
+    x.toJava shouldNot exist
+
+    inside(bag.replaceFetchItemWithFile(Paths.get("x"))) {
+      case Success(_) =>
+        x.toJava should exist
+    }
+  }
+
+  "replaceFetchItemWithFile with URL" should "resolve a fetch item by url" in {
     assumeCanConnect(lipsum4URL)
 
     val bag = fetchBagV0()
@@ -1124,7 +1176,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "replaceFetchItemWithFile by FetchItem" should "download the file and put it in the payload" in {
+  "replaceFetchItemWithFile with FetchItem" should "download the file and put it in the payload" in {
     assumeCanConnect(lipsum4URL)
 
     val bag = fetchBagV0()
@@ -1671,7 +1723,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "addPayloadFile with stream" should behave like addPayloadFile(
+  "addPayloadFile with InputStream and RelativePath" should behave like addPayloadFile(
     bag => file => relativeDest => file.inputStream()(bag.addPayloadFile(_)(relativeDest))
   )
 
@@ -1684,13 +1736,28 @@ class DansV0BagSpec extends TestSupportFixture
     newDir / "sub" / "subsub" / "file4.txt" createIfNotExists (createParents = true) writeText lipsum(4)
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
 
-    inside(newDir.inputStream()(bag.addPayloadFile(_, Paths.get("path/to/newDir")))) {
+    inside(newDir.inputStream()(bag.addPayloadFile(_)(relativeDest))) {
       case Failure(e: IOException) =>
         e should have message "Is a directory"
     }
   }
 
-  "addPayloadFile with file" should behave like addPayloadFile(_.addPayloadFile)
+  "addPayloadFile with InputStream and java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = simpleBagV0()
+    val file = testDir / "file.txt" createIfNotExists() writeText lipsum(3)
+    val relativeDest: RelativePath = _ / "path" / "to" / "file-copy.txt"
+    val dest = relativeDest(bag.data)
+
+    dest.toJava shouldNot exist
+
+    file.inputStream()(bag.addPayloadFile(_, Paths.get("path/to/file-copy.txt"))) shouldBe a[Success[_]]
+
+    dest.toJava should exist
+    dest.contentAsString shouldBe file.contentAsString
+    dest.sha1 shouldBe file.sha1
+  }
+
+  "addPayloadFile with File and RelativePath" should behave like addPayloadFile(_.addPayloadFile)
 
   it should "recursively add the files and folders in the directory to the bag" in {
     val bag = multipleManifestsBagV0()
@@ -1703,7 +1770,7 @@ class DansV0BagSpec extends TestSupportFixture
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
     val dest = relativeDest(bag.data)
 
-    inside(bag.addPayloadFile(newDir, Paths.get("path/to/newDir"))) {
+    inside(bag.addPayloadFile(newDir)(relativeDest)) {
       case Success(resultBag) =>
         val files = Set(file1, file2, file3, file4, file5)
           .map(file => dest / newDir.relativize(file).toString)
@@ -1719,7 +1786,22 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "removePayloadFile" should "remove a payload file from the bag" in {
+  "addPayloadFile with File and java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = simpleBagV0()
+    val file = testDir / "file.txt" createIfNotExists() writeText lipsum(3)
+    val relativeDest: RelativePath = _ / "path" / "to" / "file-copy.txt"
+    val dest = relativeDest(bag.data)
+
+    dest.toJava shouldNot exist
+
+    bag.addPayloadFile(file, Paths.get("path/to/file-copy.txt")) shouldBe a[Success[_]]
+
+    dest.toJava should exist
+    dest.contentAsString shouldBe file.contentAsString
+    dest.sha1 shouldBe file.sha1
+  }
+
+  "removePayloadFile with Relativepath" should "remove a payload file from the bag" in {
     val bag = simpleBagV0()
     val file = bag.data / "sub" / "u"
 
@@ -1861,6 +1943,17 @@ class DansV0BagSpec extends TestSupportFixture
         // payload manifests didn't change
         bag.payloadManifests shouldBe checksumsBeforeCall
     }
+  }
+
+  "removePayloadFile with java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = simpleBagV0()
+    val file = bag.data / "sub" / "u"
+
+    file.toJava should exist
+
+    bag.removePayloadFile(Paths.get("sub/u")) shouldBe a[Success[_]]
+    file.toJava shouldNot exist
+    file.parent.toJava should exist
   }
 
   "tagManifests" should "list all entries in the tagmanifest-<alg>.txt files" in {
@@ -2064,7 +2157,7 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "addTagFile with stream" should behave like addTagFile(
+  "addTagFile with InputStream and RelativePath" should behave like addTagFile(
     bag => file => relativeDest => file.inputStream()(bag.addTagFile(_)(relativeDest))
   )
 
@@ -2077,13 +2170,28 @@ class DansV0BagSpec extends TestSupportFixture
     newDir / "sub" / "subsub" / "file4.txt" createIfNotExists (createParents = true) writeText lipsum(4)
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
 
-    inside(newDir.inputStream()(bag.addTagFile(_, Paths.get("path/to/newDir")))) {
+    inside(newDir.inputStream()(bag.addTagFile(_)(relativeDest))) {
       case Failure(e: IOException) =>
         e should have message "Is a directory"
     }
   }
 
-  "addTagFile with file" should behave like addTagFile(_.addTagFile)
+  "addTagFile with InputStream and java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = simpleBagV0()
+    val file = testDir / "file.txt" createIfNotExists() writeText lipsum(3)
+    val relativeDest: RelativePath = _ / "metadata" / "temp" / "file-copy.txt"
+    val dest = relativeDest(bag)
+
+    dest.toJava shouldNot exist
+
+    file.inputStream()(bag.addTagFile(_, Paths.get("metadata/temp/file-copy.txt"))) shouldBe a[Success[_]]
+
+    dest.toJava should exist
+    dest.contentAsString shouldBe file.contentAsString
+    dest.sha1 shouldBe file.sha1
+  }
+
+  "addTagFile with File and RelativePath" should behave like addTagFile(_.addTagFile)
 
   it should "recursively add the files and folders in the directory to the bag" in {
     val bag = multipleManifestsBagV0()
@@ -2096,7 +2204,7 @@ class DansV0BagSpec extends TestSupportFixture
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
     val dest = relativeDest(bag)
 
-    inside(bag.addTagFile(newDir, Paths.get("path/to/newDir"))) {
+    inside(bag.addTagFile(newDir)(relativeDest)) {
       case Success(resultBag) =>
         val files = Set(file1, file2, file3, file4, file5)
           .map(file => dest / newDir.relativize(file).toString)
@@ -2112,7 +2220,22 @@ class DansV0BagSpec extends TestSupportFixture
     }
   }
 
-  "removeTagFile" should "remove a tag file from the bag" in {
+  "addTagFile with File and java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = simpleBagV0()
+    val file = testDir / "file.txt" createIfNotExists() writeText lipsum(3)
+    val relativeDest: RelativePath = _ / "metadata" / "temp" / "file-copy.txt"
+    val dest = relativeDest(bag)
+
+    dest.toJava shouldNot exist
+
+    bag.addTagFile(file, Paths.get("metadata/temp/file-copy.txt")) shouldBe a[Success[_]]
+
+    dest.toJava should exist
+    dest.contentAsString shouldBe file.contentAsString
+    dest.sha1 shouldBe file.sha1
+  }
+
+  "removeTagFile with RelativePath" should "remove a tag file from the bag" in {
     val bag = simpleBagV0()
     val file = bag / "metadata" / "dataset.xml"
 
@@ -2286,6 +2409,18 @@ class DansV0BagSpec extends TestSupportFixture
       case Failure(e: IllegalArgumentException) =>
         e should have message s"cannot remove directory '$dir'; you can only remove files"
     }
+  }
+
+  "removeTagFile with java.nio.file.Path" should "forward to the overload with RelativePath" in {
+    val bag = simpleBagV0()
+    val file = bag / "metadata" / "dataset.xml"
+
+    file.toJava should exist
+
+    bag.removeTagFile(Paths.get("metadata/dataset.xml")) shouldBe a[Success[_]]
+    file.toJava shouldNot exist
+    file.parent shouldBe bag / "metadata"
+    file.parent.toJava should exist
   }
 
   "save" should "save bagit.txt" in {
