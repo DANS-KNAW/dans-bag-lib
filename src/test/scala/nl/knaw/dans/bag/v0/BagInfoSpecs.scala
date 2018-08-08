@@ -234,14 +234,35 @@ class BagInfoSpecs extends TestSupportFixture with TestBags {
   }
 
   "withEasyUserAccount" should "add EASY-User-Account to bag-info.txt" in {
-    val bag = simpleBagV0().withEasyUserAccount("someAccount")
+    val bag = simpleBagV0()
+
+    bag.bagInfo shouldNot contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+
+    val resultBag = bag.withEasyUserAccount("someAccount")
+
+    resultBag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+    bag.bagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY) shouldBe Seq("someAccount")
+  }
+
+  it should "remove the old EASY-User-Account value from bag-info.txt" in {
+    val bag = simpleBagV0().withEasyUserAccount("someAccount1")
+
     bag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
-    bag.bagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY) shouldBe Seq("""someAccount""")
+    bag.bagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY) shouldBe Seq("someAccount1")
+
+    val resultBag = bag.withEasyUserAccount("someAccount2")
+
+    resultBag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+    bag.bagInfo(DansV0Bag.EASY_USER_ACCOUNT_KEY) shouldBe Seq("someAccount2")
   }
 
   "withoutEasyUserAccount" should "remove EASY-User-Account to bag-info.txt" in {
     val bag = simpleBagV0().withEasyUserAccount("someAccount")
+
     bag.bagInfo should contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
-    bag.withoutEasyUserAccount().bagInfo shouldNot contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
+
+    val resultBag = bag.withoutEasyUserAccount()
+
+    resultBag.bagInfo shouldNot contain key DansV0Bag.EASY_USER_ACCOUNT_KEY
   }
 }
