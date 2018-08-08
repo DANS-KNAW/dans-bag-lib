@@ -208,6 +208,10 @@ trait DansBag {
    *
    * Please note that this will only be synced with `fetch.txt` and `manifest-<alg>.txt` once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.addFetchItem(url, _ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param url        the url where the file is to be retrieved from
    * @param pathInData the path relative to the `bag/data` directory where the new file is virtually being placed
    * @return this bag, with the new FetchItem
@@ -226,6 +230,10 @@ trait DansBag {
    *
    * Please note that this will only be synced with `fetch.txt` and `manifest-<alg>.txt` once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.addFetchItem(url, Paths.get("path/to/some/file.txt"))
+   * }}}
    * @param url        the url where the file is to be retrieved from
    * @param pathInData the path relative to the `bag/data` directory where the new file is virtually being placed
    * @return this bag, with the new FetchItem
@@ -237,6 +245,10 @@ trait DansBag {
    *
    * Please note that this will only be synced with `fetch.txt` and `manifest-<alg>.txt` once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.removeFetchItem(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param pathInData the path relative to the `bag/data` directory of the fetchitem to be removed
    * @return this bag, without the fetchitem
    */
@@ -247,6 +259,10 @@ trait DansBag {
    *
    * Please note that this will only be synced with `fetch.txt` and `manifest-<alg>.txt` once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.removeFetchItem(Paths.get("path/to/some/file.txt"))
+   * }}}
    * @param pathInData the path relative to the `bag/data` directory of the fetchitem to be removed
    * @return this bag, without the fetchitem
    */
@@ -283,6 +299,10 @@ trait DansBag {
    * Please note that, while the file is removed from the bag immediately, the changes to the
    * fetch file will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.replaceFileWithFetchItem(_ / "path" / "to" / "some" / "file.txt", url)
+   * }}}
    * @param pathInData the path in `bag/data` to the file that is included in the fetch file
    * @param url        the `URL` through which the file will be resolved in the future
    * @return this bag, with the added reference in the fetch file
@@ -300,6 +320,10 @@ trait DansBag {
    * Please note that, while the file is removed from the bag immediately, the changes to the
    * fetch file will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.replaceFileWithFetchItem(Paths.get("path/to/some/file.txt"), url)
+   * }}}
    * @param pathInData the path in `bag/data` to the file that is included in the fetch file
    * @param url        the `URL` through which the file will be resolved in the future
    * @return this bag, with the added reference in the fetch file
@@ -322,6 +346,10 @@ trait DansBag {
    * Please note that this change is applied immediately and, since no changes are made to the rest
    * of the bag, there is no need to call [[DansBag#save]] for this to have full effect.
    *
+   * @example
+   * {{{
+   *   bag.replaceFetchItemWithFile(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param pathInData a relative path in `bag/data` that is listed in the fetch file and where the
    *                   file is stored on file system after being downloaded
    * @return this bag, after having downloaded the file
@@ -344,6 +372,10 @@ trait DansBag {
    * Please note that this change is applied immediately and, since no changes are made to the rest
    * of the bag, there is no need to call [[DansBag#save]] for this to have full effect.
    *
+   * @example
+   * {{{
+   *   bag.replaceFetchItemWithFile(Paths.get("path/to/some/file.txt"))
+   * }}}
    * @param pathInData a relative path in `bag/data` that is listed in the fetch file and where the
    *                   file is stored on file system after being downloaded
    * @return this bag, after having downloaded the file
@@ -490,6 +522,10 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.addPayloadFile(inputStream)(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInData  the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
@@ -511,7 +547,7 @@ trait DansBag {
    *
    * @example
    * {{{
-   * dir.children.map(f => bag.addPayloadFile(f, dir.relativize(f)))
+   *   bag.addPayloadFile(inputStream, Paths.get("path/to/some/file.txt"))
    * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInData  the path relative to the `bag/data` directory where the new file is being placed
@@ -531,6 +567,10 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.addPayloadFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param src        the source of the new file to be added to the bag
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
@@ -549,6 +589,14 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   // hardcoded path
+   *   bag.addPayloadFile(srcFile, Paths.get("path/to/some/file.txt"))
+   *
+   *   // add all files from a source directory to the payload
+   *   dir.children.map(f => bag.addPayloadFile(f, dir.relativize(f)))
+   * }}}
    * @param src        the source of the new file to be added to the bag
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
@@ -566,6 +614,10 @@ trait DansBag {
    * Please note that, while the file is removed from the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.removePayloadFile(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param pathInData the path to the file within `bag/data` that is being removed
    * @return this bag, without the payload manifest entries for the removed file
    */
@@ -582,6 +634,10 @@ trait DansBag {
    * Please note that, while the file is removed from the bag immediately, the changes to the
    * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.removePayloadFile(Paths.get("path/to/some/file.txt"))
+   * }}}
    * @param pathInData the path to the file within `bag/data` that is being removed
    * @return this bag, without the payload manifest entries for the removed file
    */
@@ -607,7 +663,7 @@ trait DansBag {
    *
    * @example
    * {{{
-   * addTagFile("blabla".asInputStream)(_ / "metadata" / "message-from-depositor.txt")
+   *   bag.addTagFile(inputStream)(_ / "path" / "to" / "some" / "file.txt")
    * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInBag   the path relative to the bag's base directory where the new file is being placed
@@ -626,10 +682,9 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
-   *
    * @example
    * {{{
-   * addTagFile("blabla".asInputStream, Paths.get("path/to/files"))
+   *   bag.addTagFile(inputStream, Paths.get("path/to/some/file.txt"))
    * }}}
    * @param inputStream the source of the new file to be added to the bag
    * @param pathInBag   the path relative to the bag's base directory where the new file is being placed
@@ -648,6 +703,10 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.addTagFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param src       the source of the new file to be added to the bag
    * @param pathInBag the path relative to the bag's base directory where the new file is being placed
    * @return this bag, with the added checksums of the new tag file
@@ -665,6 +724,14 @@ trait DansBag {
    * Please note that, while the new file is added to the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   // hardcoded path
+   *   bag.addTagFile(srcFile, Paths.get("path/to/some/file.txt"))
+   *
+   *   // add all files from a source directory to the payload
+   *   dir.children.map(f => bag.addTagFile(f, dir.relativize(f)))
+   * }}}
    * @param src       the source of the new file to be added to the bag
    * @param pathInBag the path relative to the bag's base directory where the new file is being placed
    * @return this bag, with the added checksums of the new tag file
@@ -682,6 +749,10 @@ trait DansBag {
    * Please note that, while the file is removed from the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.removeTagFile(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
    * @param pathInBag the path to the file within the bag's base directory that is being removed
    * @return this bag, without the tag manifest entries for the removed file
    */
@@ -698,6 +769,10 @@ trait DansBag {
    * Please note that, while the file is removed from the bag immediately, the changes to the
    * tag manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
    *
+   * @example
+   * {{{
+   *   bag.removeTagFile(Paths.get("path/to/some/file.txt"))
+   * }}}
    * @param pathInBag the path to the file within the bag's base directory that is being removed
    * @return this bag, without the tag manifest entries for the removed file
    */
