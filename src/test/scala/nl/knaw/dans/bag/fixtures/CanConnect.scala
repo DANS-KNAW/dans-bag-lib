@@ -17,11 +17,11 @@ package nl.knaw.dans.bag.fixtures
 
 import java.net.{ HttpURLConnection, URL }
 
-import org.scalatest.{ FlatSpecLike, Matchers, Outcome, Retries }
+import org.scalatest.{ Matchers, Outcome, Retries, TestSuite }
 
 import scala.util.Try
 
-trait CanConnect extends FlatSpecLike with Retries {
+trait CanConnect extends TestSuite with Retries {
   this: Matchers =>
 
   override def withFixture(test: NoArgTest): Outcome = {
