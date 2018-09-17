@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.bag.v0
 
-import java.io.InputStream
+import java.io.{ IOException, InputStream }
 import java.net.{ HttpURLConnection, URI, URL, URLConnection }
 import java.nio.charset.Charset
 import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Path, Files => jFiles }
@@ -521,8 +521,39 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
+  override def addStagedPayloadFile(src: File)(pathInData: RelativePath): Try[DansV0Bag] = Try {
+    if (!src.isRegularFile)
+      throw new IOException(s"StagedPayloadFile is not a regular file: $src")
+
+    val destination = pathInData(data)
+    val provider = src.path.getFileSystem.provider()
+    if (provider != destination.path.getFileSystem.provider())
+      throw new IOException(s"Different providers, can't move [$src] to [$destination]")
+    if (destination.exists)
+      throw new FileAlreadyExistsException(destination.toString)
+    if (fetchFiles.map(_.file) contains destination)
+      throw new FileAlreadyExistsException(destination.toString(), null, "file already present in bag as a fetch file")
+
+    destination.parent.createDirectories()
+    provider.move(src.path, destination)
+
+    addCheckSum(destination, locBag.getPayLoadManifests)
+
+    this
+  }
+
+  /**
+   * @inheritdoc
+   */
   override def addPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
     addPayloadFile(src)(_ / pathInData.toString)
+  }
+
+  /**
+   * @inheritdoc
+   */
+  override def addStagedPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
+    addStagedPayloadFile(src)(_ / pathInData.toString)
   }
 
   /**
@@ -818,7 +849,10 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
   private def addFile(inputStream: InputStream, dest: File, manifests: jSet[LocManifest]): Unit = {
     jFiles.copy(inputStream, dest)
+    addCheckSum(dest, manifests)
+  }
 
+  private def addCheckSum(dest: File, manifests: jSet[LocManifest]): Unit = {
     for (manifest <- manifests.asScala;
          algorithm: ChecksumAlgorithm = manifest.getAlgorithm)
       manifest.getFileToChecksumMap.put(dest, dest.checksum(algorithm).toLowerCase)
