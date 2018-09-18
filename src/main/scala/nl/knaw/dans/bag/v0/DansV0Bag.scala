@@ -18,6 +18,7 @@ package nl.knaw.dans.bag.v0
 import java.io.{ IOException, InputStream }
 import java.net.{ HttpURLConnection, URI, URL, URLConnection }
 import java.nio.charset.Charset
+import java.nio.file.StandardCopyOption.ATOMIC_MOVE
 import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Path, Files => jFiles }
 import java.util.{ UUID, Set => jSet }
 
@@ -523,20 +524,21 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
    */
   override def addStagedPayloadFile(src: File)(pathInData: RelativePath): Try[DansV0Bag] = Try {
     if (!src.isRegularFile)
-      throw new IOException(s"StagedPayloadFile is not a regular file: $src")
+      throw new IllegalArgumentException(s"StagedPayloadFile is not a regular file: $src")
 
     val destination = pathInData(data)
     val provider = src.path.getFileSystem.provider()
     if (provider != destination.path.getFileSystem.provider())
       throw new IOException(s"Different providers, can't move [$src] to [$destination]")
+    if (!data.isParentOf(destination))
+      throw new IllegalArgumentException(s"pathInData '$destination' is supposed to point to a file that is a child of the bag/data directory")
     if (destination.exists)
       throw new FileAlreadyExistsException(destination.toString)
     if (fetchFiles.map(_.file) contains destination)
       throw new FileAlreadyExistsException(destination.toString(), null, "file already present in bag as a fetch file")
 
     destination.parent.createDirectories()
-    provider.move(src.path, destination)
-
+    provider.move(src.path, destination, ATOMIC_MOVE) // avoid implicit copy/delete
     addCheckSum(destination, locBag.getPayLoadManifests)
 
     this
@@ -545,15 +547,15 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def addPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
-    addPayloadFile(src)(_ / pathInData.toString)
+  override def addStagedPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
+    addStagedPayloadFile(src)(_ / pathInData.toString)
   }
 
   /**
    * @inheritdoc
    */
-  override def addStagedPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
-    addStagedPayloadFile(src)(_ / pathInData.toString)
+  override def addPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = {
+    addPayloadFile(src)(_ / pathInData.toString)
   }
 
   /**
