@@ -599,11 +599,7 @@ trait DansBag {
    *
    * @example
    * {{{
-   *   // add a single file
-   *   bag.addPayloadFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
-   *
-   *   // add a directory of files
-   *   bag.addPayloadFile(srcDir)(_ / "path" / "to" / "some" / "directory")
+   *   bag.addStagedPayloadFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
    * }}}
    * @param src        the source of the new file to be added to the bag
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
@@ -656,10 +652,7 @@ trait DansBag {
    * @example
    * {{{
    *   // add a single file
-   *   bag.addPayloadFile(srcFile, Paths.get("path/to/some/file.txt"))
-   *
-   *   // add a directory of files
-   *   bag.addPayloadFile(srcDir, Paths.get("path/to/some/directory"))
+   *   bag.addStagedPayloadFile(srcFile, Paths.get("path/to/some/file.txt"))
    * }}}
    * @param src        the source of the new file to be added to the bag
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
