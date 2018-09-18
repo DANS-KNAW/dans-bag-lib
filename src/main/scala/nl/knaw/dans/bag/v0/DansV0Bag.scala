@@ -853,9 +853,11 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   }
 
   private def addCheckSum(dest: File, manifests: jSet[LocManifest]): Unit = {
-    for (manifest <- manifests.asScala;
-         algorithm: ChecksumAlgorithm = manifest.getAlgorithm)
-      manifest.getFileToChecksumMap.put(dest, dest.checksum(algorithm).toLowerCase)
+    for (manifest <- manifests.asScala) {
+      val algorithm: ChecksumAlgorithm = manifest.getAlgorithm
+      val lowerCaseCheckSum = dest.checksum(algorithm).toLowerCase
+      manifest.getFileToChecksumMap.put(dest, lowerCaseCheckSum)
+    }
   }
 
   private def addFile(src: File, pathInBag: RelativePath)
