@@ -26,4 +26,12 @@ package object bag {
   type RelativePath = File => File
 
   implicit def betterFileToPath(file: File): Path = file.path
+
+  object ImportOption extends Enumeration {
+
+    type ImportOption = Value
+    val COPY: ImportOption = Value
+    val MOVE: ImportOption = Value
+    val ATOMIC_MOVE: ImportOption = Value
+  }
 }

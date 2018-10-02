@@ -24,6 +24,7 @@ import java.util.UUID
 import better.files.File
 import gov.loc.repository.bagit.domain.{ Version => LocVersion }
 import nl.knaw.dans.bag.ChecksumAlgorithm.ChecksumAlgorithm
+import nl.knaw.dans.bag.ImportOption.ImportOption
 import nl.knaw.dans.bag.v0.DansV0Bag
 import org.joda.time.DateTime
 
@@ -581,56 +582,7 @@ trait DansBag {
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
    */
-  def addPayloadFile(src: File)(pathInData: RelativePath): Try[DansBag]
-
-  /**
-   * Move a single payload file to the bag at the position indicated by the path relative to the `bag/data`
-   * directory. If the resolved destination of this new file already exists within the bag, or if
-   * the resolved destination is outside of the `bag/data` directory, this method will return a
-   * `scala.util.Failure`. This method also adds the checksum of the new file to all payload manifests.
-   *
-   * A directory as `src` is not allowed.
-   *
-   * Please note that fetch files are also considered part of the payload files. Therefore it is not
-   * allowed to add a payload file using this method that is already declared in `fetch.txt`.
-   *
-   * Please note that, while the new file is added to the bag immediately, the changes to the
-   * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
-   *
-   * @example
-   * {{{
-   *   bag.addStagedPayloadFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
-   * }}}
-   * @param src        the source of the new file to be added to the bag
-   * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
-   * @return this bag, with the added checksums of the new payload file
-   */
-  def addStagedPayloadFile(src: File)(pathInData: RelativePath): Try[DansBag]
-
-  /**
-   * Move a payload file to the bag at the position indicated by the path relative to the `bag/data`
-   * directory. If the resolved destination of this new file already exists within the bag, or if
-   * the resolved destination is outside of the `bag/data` directory, this method will return a
-   * `scala.util.Failure`. This method also adds the checksum of the new file to all payload manifests.
-   *
-   * A directory as `src` is not allowed.
-   *
-   * Please note that fetch files are also considered part of the payload files. Therefore it is not
-   * allowed to add a payload file using this method that is already declared in `fetch.txt`.
-   *
-   * Please note that, while the new file is added to the bag immediately, the changes to the
-   * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
-   *
-   * @example
-   * {{{
-   *   // add a single file
-   *   bag.addStagedPayloadFile(srcFile, Paths.get("path/to/some/file.txt"))
-   * }}}
-   * @param src        the source of the new file to be added to the bag
-   * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
-   * @return this bag, with the added checksums of the new payload file
-   */
-  def addStagedPayloadFile(src: File, pathInData: Path): Try[DansBag]
+  def addPayloadFile(src: File, importOption: ImportOption)(pathInData: RelativePath): Try[DansBag]
 
   /**
    * Add a payload file to the bag at the position indicated by the path relative to the `bag/data`
@@ -658,7 +610,58 @@ trait DansBag {
    * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
    * @return this bag, with the added checksums of the new payload file
    */
-  def addPayloadFile(src: File, pathInData: Path): Try[DansBag]
+  def addPayloadFile(src: File, pathInData: Path, importOption: ImportOption): Try[DansBag]
+
+  /**
+   * Move a single payload file to the bag at the position indicated by the path relative to the `bag/data`
+   * directory. If the resolved destination of this new file already exists within the bag, or if
+   * the resolved destination is outside of the `bag/data` directory, this method will return a
+   * `scala.util.Failure`. This method also adds the checksum of the new file to all payload manifests.
+   *
+   * A directory as `src` is not allowed.
+   *
+   * Please note that fetch files are also considered part of the payload files. Therefore it is not
+   * allowed to add a payload file using this method that is already declared in `fetch.txt`.
+   *
+   * Please note that, while the new file is added to the bag immediately, the changes to the
+   * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
+   *
+   * @example
+   * {{{
+   *   bag.addStagedPayloadFile(srcFile)(_ / "path" / "to" / "some" / "file.txt")
+   * }}}
+   * @param src        the source of the new file to be added to the bag
+   * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
+   * @return this bag, with the added checksums of the new payload file
+   */
+  @deprecated
+  def addStagedPayloadFile(src: File)(pathInData: RelativePath): Try[DansBag]
+
+  /**
+   * Move a payload file to the bag at the position indicated by the path relative to the `bag/data`
+   * directory. If the resolved destination of this new file already exists within the bag, or if
+   * the resolved destination is outside of the `bag/data` directory, this method will return a
+   * `scala.util.Failure`. This method also adds the checksum of the new file to all payload manifests.
+   *
+   * A directory as `src` is not allowed.
+   *
+   * Please note that fetch files are also considered part of the payload files. Therefore it is not
+   * allowed to add a payload file using this method that is already declared in `fetch.txt`.
+   *
+   * Please note that, while the new file is added to the bag immediately, the changes to the
+   * payload manifests will only be applied to the bag on the file system once [[DansBag#save]] is called.
+   *
+   * @example
+   * {{{
+   *   // add a single file
+   *   bag.addStagedPayloadFile(srcFile, Paths.get("path/to/some/file.txt"))
+   * }}}
+   * @param src        the source of the new file to be added to the bag
+   * @param pathInData the path relative to the `bag/data` directory where the new file is being placed
+   * @return this bag, with the added checksums of the new payload file
+   */
+  @deprecated
+  def addStagedPayloadFile(src: File, pathInData: Path): Try[DansBag]
 
   /**
    * Remove the payload file (relative to the `bag/data` directory) from the bag. This also removes

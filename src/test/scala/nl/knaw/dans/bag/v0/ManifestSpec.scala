@@ -20,7 +20,7 @@ import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Paths }
 
 import better.files.File
 import nl.knaw.dans.bag.fixtures.{ BagMatchers, Lipsum, TestBags, TestSupportFixture }
-import nl.knaw.dans.bag.{ ChecksumAlgorithm, RelativePath }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, ImportOption, RelativePath }
 
 import scala.language.existentials
 import scala.util.{ Failure, Success, Try }
@@ -180,7 +180,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     dest.sha1 shouldBe file.sha1
   }
 
-  "addPayloadFile with File and RelativePath" should behave like addPayloadFile(_.addPayloadFile)
+  "addPayloadFile with File and RelativePath" should behave like addPayloadFile(bag => bag.addPayloadFile(_, ImportOption.COPY))
 
   it should "recursively add the files and folders in the directory to the bag" in {
     val bag = multipleManifestsBagV0()
@@ -193,7 +193,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     val relativeDest: RelativePath = _ / "path" / "to" / "newDir"
     val dest = relativeDest(bag.data)
 
-    inside(bag.addPayloadFile(newDir)(relativeDest)) {
+    inside(bag.addPayloadFile(newDir, ImportOption.COPY)(relativeDest)) {
       case Success(resultBag) =>
         val files = Set(file1, file2, file3, file4, file5)
           .map(file => dest / newDir.relativize(file).toString)
@@ -217,7 +217,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
     dest shouldNot exist
 
-    bag.addPayloadFile(file, Paths.get("path/to/file-copy.txt")) shouldBe a[Success[_]]
+    bag.addPayloadFile(file, Paths.get("path/to/file-copy.txt"), ImportOption.COPY) shouldBe a[Success[_]]
 
     dest should exist
     dest.contentAsString shouldBe file.contentAsString
@@ -254,7 +254,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     val file = testDir / "a.txt" createIfNotExists (createParents = true) writeText "content of file a"
     val destination = bag.data / "path" / "to" / "file" / "a.txt"
 
-    bag.addPayloadFile(file)(_ / "path" / "to" / "file" / "a.txt") shouldBe a[Success[_]]
+    bag.addPayloadFile(file, ImportOption.COPY)(_ / "path" / "to" / "file" / "a.txt") shouldBe a[Success[_]]
 
     destination should exist
     bag.payloadManifests(ChecksumAlgorithm.SHA1) should contain key destination

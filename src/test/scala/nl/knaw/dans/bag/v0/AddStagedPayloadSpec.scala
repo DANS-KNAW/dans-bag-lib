@@ -19,20 +19,17 @@ import java.nio.file.{ AtomicMoveNotSupportedException, FileAlreadyExistsExcepti
 
 import better.files.File
 import better.files.File.temporaryFile
+import nl.knaw.dans.bag.ImportOption
 import nl.knaw.dans.bag.fixtures.{ TestBags, TestSupportFixture }
 
 import scala.util.{ Failure, Success }
 
 class AddStagedPayloadSpec extends TestSupportFixture with TestBags {
 
-  "addStagedPayloadFile" should "fail if the staged file is a directory" in {
+  "addPayloadFile ATOMIC_MOVE" should "fail if the staged file is a directory" in {
     val stagedDir = (testDir / "some/dir").createDirectories()
-    simpleBagV0().addStagedPayloadFile(
-      stagedDir,
-      Paths.get("do-not-care")
-    ) should matchPattern {
-      case Failure(e) if e.isInstanceOf[IllegalArgumentException] &&
-        e.getMessage.startsWith("StagedPayloadFile is not a regular file:") =>
+    simpleBagV0().addPayloadFile(stagedDir, Paths.get("do-not-care"), ImportOption.ATOMIC_MOVE) should matchPattern {
+      case Failure(e: IllegalArgumentException) if e.getMessage.startsWith("src cannot be moved, as it is not a regular file:") =>
     }
     stagedDir should exist
   }
@@ -40,36 +37,24 @@ class AddStagedPayloadSpec extends TestSupportFixture with TestBags {
   it should "fail if the destination exists" in {
     val stagedFile = (testDir / "some.file").createFile()
     val bag = simpleBagV0()
-    bag.addStagedPayloadFile(
-      stagedFile,
-      Paths.get("sub/u")
-    ) should matchPattern {
-      case Failure(e) if e.isInstanceOf[FileAlreadyExistsException] &&
-        e.getMessage == s"${ bag.data / "sub/u" }" =>
+    bag.addPayloadFile(stagedFile, Paths.get("sub/u"), ImportOption.ATOMIC_MOVE) should matchPattern {
+      case Failure(e: FileAlreadyExistsException) if e.getMessage == s"${ bag.data / "sub/u" }" =>
     }
     stagedFile should exist
   }
 
   it should "fail if the destination is not inside the bag/data directory" in {
     val stagedFile = (testDir / "some.file").createFile()
-    simpleBagV0().addStagedPayloadFile(
-      stagedFile,
-      Paths.get("../../sub/u")
-    ) should matchPattern {
-      case Failure(e) if e.isInstanceOf[IllegalArgumentException] &&
-        e.getMessage.endsWith(" is supposed to point to a file that is a child of the bag/data directory") =>
+    simpleBagV0().addPayloadFile(stagedFile, Paths.get("../../sub/u"), ImportOption.ATOMIC_MOVE) should matchPattern {
+      case Failure(e: IllegalArgumentException) if e.getMessage.endsWith(" is supposed to point to a file that is a child of the bag/data directory") =>
     }
     stagedFile should exist
   }
 
   it should "fail if the destination is present as fetch file" in {
     val stagedFile = (testDir / "some.file").createFile()
-    fetchBagV0().addStagedPayloadFile(
-      stagedFile,
-      Paths.get("sub/u")
-    ) should matchPattern {
-      case Failure(e) if e.isInstanceOf[FileAlreadyExistsException] &&
-        e.getMessage.endsWith("file already present in bag as a fetch file") =>
+    fetchBagV0().addPayloadFile(stagedFile, Paths.get("sub/u"), ImportOption.ATOMIC_MOVE) should matchPattern {
+      case Failure(e: FileAlreadyExistsException) if e.getMessage.endsWith("file already present in bag as a fetch file") =>
     }
     stagedFile should exist
   }
@@ -80,12 +65,8 @@ class AddStagedPayloadSpec extends TestSupportFixture with TestBags {
     val managedFile = temporaryFile(parent = Some(File("/tmp")))
     managedFile.apply { stagedFile =>
       assume(stagedFile.exists)
-      bag.addStagedPayloadFile(
-        stagedFile,
-        Paths.get("new/file")
-      ) should matchPattern {
-        case Failure(e) if e.isInstanceOf[AtomicMoveNotSupportedException] &&
-          e.getMessage.endsWith("???") =>
+      bag.addPayloadFile(stagedFile, Paths.get("new/file"), ImportOption.ATOMIC_MOVE) should matchPattern {
+        case Failure(e: AtomicMoveNotSupportedException) if e.getMessage.endsWith("???") =>
       }
       stagedFile should exist
     }
@@ -93,10 +74,7 @@ class AddStagedPayloadSpec extends TestSupportFixture with TestBags {
 
   it should "move the staged file" in {
     val stagedFile = (testDir / "some.file").createFile()
-    inside(simpleBagV0().addStagedPayloadFile(
-      stagedFile,
-      Paths.get("new/file")
-    )) {
+    inside(simpleBagV0().addPayloadFile(stagedFile, Paths.get("new/file"), ImportOption.ATOMIC_MOVE)) {
       case Failure(e) => fail(s"Expected success but got: $e")
       case Success(resultBag) =>
         stagedFile shouldNot exist

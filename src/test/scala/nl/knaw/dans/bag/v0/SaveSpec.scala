@@ -22,7 +22,7 @@ import gov.loc.repository.bagit.conformance.{ BagLinter, BagitWarning }
 import gov.loc.repository.bagit.domain.Version
 import gov.loc.repository.bagit.verify.BagVerifier
 import nl.knaw.dans.bag.fixtures._
-import nl.knaw.dans.bag.{ ChecksumAlgorithm, FetchItem }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, FetchItem, ImportOption }
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.scalatest.tagobjects.Retryable
@@ -91,7 +91,7 @@ class SaveSpec extends TestSupportFixture
     // changes + save
     val newFile = testDir / "xxx.txt" createIfNotExists (createParents = true) writeText lipsum(5)
     val uuid = s"urn:uuid:${ UUID.randomUUID() }"
-    bag.addPayloadFile(newFile)(_ / "abc.txt")
+    bag.addPayloadFile(newFile, ImportOption.COPY)(_ / "abc.txt")
       .map(_.addBagInfo("Is-Version-Of", uuid))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
@@ -373,7 +373,7 @@ class SaveSpec extends TestSupportFixture
 
     // changes + save
     val newFile = testDir / "xxx.txt" createIfNotExists (createParents = true) writeText lipsum(5)
-    bag.addPayloadFile(newFile)(_ / "abc.txt")
+    bag.addPayloadFile(newFile, ImportOption.COPY)(_ / "abc.txt")
       .flatMap(_.removePayloadFile(_ / "y"))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
@@ -413,7 +413,7 @@ class SaveSpec extends TestSupportFixture
     // changes + save
     val newFile = testDir / "xxx.txt" createIfNotExists (createParents = true) writeText lipsum(5)
     bag.addPayloadManifestAlgorithm(ChecksumAlgorithm.SHA256)
-      .flatMap(_.addPayloadFile(newFile)(_ / "abc.txt"))
+      .flatMap(_.addPayloadFile(newFile, ImportOption.COPY)(_ / "abc.txt"))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
     // expected results
@@ -540,7 +540,7 @@ class SaveSpec extends TestSupportFixture
     )
 
     // changes + save
-    bag.addPayloadFile(newFileSrc)(_ => newFile)
+    bag.addPayloadFile(newFileSrc, ImportOption.COPY)(_ => newFile)
       .flatMap(_.save()) shouldBe a[Success[_]]
 
     // expected results
