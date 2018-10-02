@@ -346,27 +346,6 @@ The PayloadManifests are updated with the checksum of the downloaded file. The l
 method may take some time to complete and return. It is therefore strongly advised to wrap
 a call to this method in a <code>Promise</code>/<code>Future</code>, <code>Observable</code> or any other desired data structure
 that deals with latency in a proper way.</p><p>Please note that this will only be synced with <code>fetch.txt</code> and <code>manifest-&lt;alg&gt;.txt</code> once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">url</dt><dd class="cmt"><p>the url where the file is to be retrieved from</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is virtually being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the new FetchItem</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addFetchItem" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addFetchItem(url:java.net.URL,pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addFetchItem(URL,RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addFetchItem(url:java.net.URL,pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addFetchItem</span><span class="params">(<span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>, <span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Adds the triple (url, length, path) to the <code>fetch.txt</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Adds the triple (url, length, path) to the <code>fetch.txt</code>.
-If the path already exists in the fetch, or in the payload, an Exception will occur.
-The PayloadManifests are updated with the checksum of the downloaded file. The length will be calculated as well.</p><p>Due to calculating the checksums for all files, as well as downloading all fetch files, this
-method may take some time to complete and return. It is therefore strongly advised to wrap
-a call to this method in a <code>Promise</code>/<code>Future</code>, <code>Observable</code> or any other desired data structure
-that deals with latency in a proper way.</p><p>Please note that this will only be synced with <code>fetch.txt</code> and <code>manifest-&lt;alg&gt;.txt</code> once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">url</dt><dd class="cmt"><p>the url where the file is to be retrieved from</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is virtually being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the new FetchItem</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
     </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addPayloadFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addPayloadFile(src:better.files.File,pathInData:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addPayloadFile(File,Path):Try[DansV0Bag]"></a>
       <span class="permalink">
@@ -390,28 +369,6 @@ the resolved destination is outside of the <code>bag/data</code> directory, this
 allowed to add a payload file using this method that is already declared in <code>fetch.txt</code>.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
 payload manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">src</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new payload file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
     </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addPayloadFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addPayloadFile(src:better.files.File)(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addPayloadFile(File)(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addPayloadFile(src:better.files.File)(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addPayloadFile</span><span class="params">(<span name="src">src: <span class="extype" name="better.files.File">File</span></span>)</span><span class="params">(<span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Add a payload file to the bag at the position indicated by the path relative to the <code>bag/data</code>
-directory.</p><div class="fullcomment"><div class="comment cmt"><p>Add a payload file to the bag at the position indicated by the path relative to the <code>bag/data</code>
-directory. If the resolved destination of this new file already exists within the bag, or if
-the resolved destination is outside of the <code>bag/data</code> directory, this method will return a
-<code>scala.util.Failure</code>. This method also adds the checksum of the new file to all payload manifests.</p><p>When <code>src</code> is a directory, each file will in that directory will be copied into the payload directory.</p><p>Please note that fetch files are also considered part of the payload files. Therefore it is not
-allowed to add a payload file using this method that is already declared in <code>fetch.txt</code>.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
-payload manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">src</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new payload file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addPayloadFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addPayloadFile(inputStream:java.io.InputStream,pathInData:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addPayloadFile(InputStream,Path):Try[DansV0Bag]"></a>
       <span class="permalink">
       <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addPayloadFile(inputStream:java.io.InputStream,pathInData:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
@@ -424,29 +381,6 @@ payload manifests will only be applied to the bag on the file system once <a hre
       </span>
       <span class="symbol">
         <span class="name">addPayloadFile</span><span class="params">(<span name="inputStream">inputStream: <span class="extype" name="java.io.InputStream">InputStream</span></span>, <span name="pathInData">pathInData: <span class="extype" name="java.nio.file.Path">Path</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Add a payload file from an <code>java.io.InputStream</code> to the bag at the position indicated by the
-path relative to the <code>bag/data</code> directory.</p><div class="fullcomment"><div class="comment cmt"><p>Add a payload file from an <code>java.io.InputStream</code> to the bag at the position indicated by the
-path relative to the <code>bag/data</code> directory. If the resolved destination of this new file already
-exists within the bag, or if the resolved destination is outside of the <code>bag/data</code> directory,
-this method will return a <code>scala.util.Failure</code>. This method also adds the checksum of the new
-file to all payload manifests.</p><p>Please note that fetch files are also considered part of the payload files. Therefore it is not
-allowed to add a payload file using this method that is already declared in <code>fetch.txt</code>.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
-payload manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">inputStream</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new payload file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addPayloadFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addPayloadFile(inputStream:java.io.InputStream)(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addPayloadFile(InputStream)(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addPayloadFile(inputStream:java.io.InputStream)(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addPayloadFile</span><span class="params">(<span name="inputStream">inputStream: <span class="extype" name="java.io.InputStream">InputStream</span></span>)</span><span class="params">(<span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a payload file from an <code>java.io.InputStream</code> to the bag at the position indicated by the
@@ -510,29 +444,6 @@ if it is equal to one of the reserved files (<code>bagit.txt</code>, <code>bag-i
 This method also adds the checksum of the new file to all tag manifests.</p><p>When <code>src</code> is a directory, each file will in that directory will be copied into the payload directory.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
 tag manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">src</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInBag</dt><dd class="cmt"><p>the path relative to the bag's base directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new tag file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
     </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addTagFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addTagFile(src:better.files.File)(pathInBag:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addTagFile(File)(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addTagFile(src:better.files.File)(pathInBag:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addTagFile</span><span class="params">(<span name="src">src: <span class="extype" name="better.files.File">File</span></span>)</span><span class="params">(<span name="pathInBag">pathInBag: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Add a tag file to the bag at the position indicated by the path relative to the bag's base
-directory.</p><div class="fullcomment"><div class="comment cmt"><p>Add a tag file to the bag at the position indicated by the path relative to the bag's base
-directory. If the resolved destination of this new file already exists within the bag, or if
-the resolved destination is outside of the base directory, inside the <code>bag/data</code> directory or
-if it is equal to one of the reserved files (<code>bagit.txt</code>, <code>bag-info.txt</code>, <code>fetch.txt</code>,
-<code>manifest-*.txt</code> or <code>tagmanifest-*.txt</code>) this method will return a  <code>scala.util.Failure</code>.
-This method also adds the checksum of the new file to all tag manifests.</p><p>When <code>src</code> is a directory, each file will in that directory will be copied into the payload directory.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
-tag manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">src</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInBag</dt><dd class="cmt"><p>the path relative to the bag's base directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new tag file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addTagFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addTagFile(inputStream:java.io.InputStream,pathInBag:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addTagFile(InputStream,Path):Try[DansV0Bag]"></a>
       <span class="permalink">
       <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addTagFile(inputStream:java.io.InputStream,pathInBag:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
@@ -545,29 +456,6 @@ tag manifests will only be applied to the bag on the file system once <a href=".
       </span>
       <span class="symbol">
         <span class="name">addTagFile</span><span class="params">(<span name="inputStream">inputStream: <span class="extype" name="java.io.InputStream">InputStream</span></span>, <span name="pathInBag">pathInBag: <span class="extype" name="java.nio.file.Path">Path</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Add a tag file from an <code>java.io.InputStream</code> to the bag at the position indicated by the
-path relative to the bag's base directory.</p><div class="fullcomment"><div class="comment cmt"><p>Add a tag file from an <code>java.io.InputStream</code> to the bag at the position indicated by the
-path relative to the bag's base directory. If the resolved destination of this new file already
-exists within the bag, or if the resolved destination is outside of the base directory, inside
-the <code>bag/data</code> directory or if it is equal to one of the reserved files (<code>bagit.txt</code>, <code>bag-info.txt</code>,
-<code>fetch.txt</code>, <code>manifest-*.txt</code> or <code>tagmanifest-*.txt</code>) this method will return a
-<code>scala.util.Failure</code>. This method also adds the checksum of the new file to all tag manifests.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
-tag manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">inputStream</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInBag</dt><dd class="cmt"><p>the path relative to the bag's base directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new tag file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#addTagFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addTagFile(inputStream:java.io.InputStream)(pathInBag:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="addTagFile(InputStream)(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#addTagFile(inputStream:java.io.InputStream)(pathInBag:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addTagFile</span><span class="params">(<span name="inputStream">inputStream: <span class="extype" name="java.io.InputStream">InputStream</span></span>)</span><span class="params">(<span name="pathInBag">pathInBag: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a tag file from an <code>java.io.InputStream</code> to the bag at the position indicated by the
@@ -1110,22 +998,6 @@ If the key is not present, a <code>Success(None)</code> is returned instead.</p>
       </span>
       
       <p class="shortcomment cmt">Removes the fetchitem with this pathInData from the <code>fetch.txt</code> and the PayloadManifests.</p><div class="fullcomment"><div class="comment cmt"><p>Removes the fetchitem with this pathInData from the <code>fetch.txt</code> and the PayloadManifests.</p><p>Please note that this will only be synced with <code>fetch.txt</code> and <code>manifest-&lt;alg&gt;.txt</code> once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory of the fetchitem to be removed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, without the fetchitem</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#removeFetchItem" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeFetchItem(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="removeFetchItem(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#removeFetchItem(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">removeFetchItem</span><span class="params">(<span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Removes the fetchitem with this pathInData from the <code>fetch.txt</code> and the PayloadManifests.</p><div class="fullcomment"><div class="comment cmt"><p>Removes the fetchitem with this pathInData from the <code>fetch.txt</code> and the PayloadManifests.</p><p>Please note that this will only be synced with <code>fetch.txt</code> and <code>manifest-&lt;alg&gt;.txt</code> once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory of the fetchitem to be removed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, without the fetchitem</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
     </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#removePayloadFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removePayloadFile(pathInData:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="removePayloadFile(Path):Try[DansV0Bag]"></a>
       <span class="permalink">
@@ -1139,28 +1011,6 @@ If the key is not present, a <code>Success(None)</code> is returned instead.</p>
       </span>
       <span class="symbol">
         <span class="name">removePayloadFile</span><span class="params">(<span name="pathInData">pathInData: <span class="extype" name="java.nio.file.Path">Path</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Remove the payload file (relative to the <code>bag/data</code> directory) from the bag.</p><div class="fullcomment"><div class="comment cmt"><p>Remove the payload file (relative to the <code>bag/data</code> directory) from the bag. This also removes
-the related entries from all payload manifests. If the removal of this file causes a directory
-to be empty, it is removed from the bag as well. However, an empty <code>bag/data</code> directory is
-preserved.
-If the given file does not exist or is not inside the <code>bag/data</code> directory or it is a directory,
-a <code>scala.util.Failure</code> is returned.</p><p>Please note that, while the file is removed from the bag immediately, the changes to the
-payload manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">pathInData</dt><dd class="cmt"><p>the path to the file within <code>bag/data</code> that is being removed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, without the payload manifest entries for the removed file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#removePayloadFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removePayloadFile(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="removePayloadFile(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#removePayloadFile(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">removePayloadFile</span><span class="params">(<span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Remove the payload file (relative to the <code>bag/data</code> directory) from the bag.</p><div class="fullcomment"><div class="comment cmt"><p>Remove the payload file (relative to the <code>bag/data</code> directory) from the bag. This also removes
@@ -1201,28 +1051,6 @@ It also removes the payload manifest from all tagmanifests as well.</p><p>Please
       </span>
       <span class="symbol">
         <span class="name">removeTagFile</span><span class="params">(<span name="pathInBag">pathInBag: <span class="extype" name="java.nio.file.Path">Path</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Remove the tag file (relative to the bag's base directory) from the bag.</p><div class="fullcomment"><div class="comment cmt"><p>Remove the tag file (relative to the bag's base directory) from the bag. This also removes
-the related entries from all tag manifests. If the removal of this file causes a directory
-to be empty, it is removed from the bag as well.
-If the given file does not exist, or is inside the <code>bag/data</code> directory, outside/equal to the
-base directory, or is a directory, or is one of the reserved files (<code>bagit.txt</code>, <code>bag-info.txt</code>,
-<code>fetch.txt</code>, <code>manifest-*.txt</code> or <code>tagmanifest-*.txt</code>) a <code>scala.util.Failure</code> is returned.</p><p>Please note that, while the file is removed from the bag immediately, the changes to the
-tag manifests will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">pathInBag</dt><dd class="cmt"><p>the path to the file within the bag's base directory that is being removed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, without the tag manifest entries for the removed file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#removeTagFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeTagFile(pathInBag:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="removeTagFile(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#removeTagFile(pathInBag:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">removeTagFile</span><span class="params">(<span name="pathInBag">pathInBag: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Remove the tag file (relative to the bag's base directory) from the bag.</p><div class="fullcomment"><div class="comment cmt"><p>Remove the tag file (relative to the bag's base directory) from the bag. This also removes
@@ -1320,31 +1148,6 @@ therefore strongly advised to wrap a call to this method in a <code>Promise</cod
 or any other desired data structure that deals with latency in a proper way.</p><p>Please note that this change is applied immediately and, since no changes are made to the rest
 of the bag, there is no need to call <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> for this to have full effect.</p></div><dl class="paramcmts block"><dt class="param">pathInData</dt><dd class="cmt"><p>a relative path in <code>bag/data</code> that is listed in the fetch file and where the
                   file is stored on file system after being downloaded</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, after having downloaded the file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#replaceFetchItemWithFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceFetchItemWithFile(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="replaceFetchItemWithFile(RelativePath):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#replaceFetchItemWithFile(pathInData:nl.knaw.dans.bag.RelativePath):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">replaceFetchItemWithFile</span><span class="params">(<span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Downloads a file from the list of fetch files (indicated by the relative path to <code>bag/data</code>)
-through the corresponding <code>URL</code> and stores it at its original place.</p><div class="fullcomment"><div class="comment cmt"><p>Downloads a file from the list of fetch files (indicated by the relative path to <code>bag/data</code>)
-through the corresponding <code>URL</code> and stores it at its original place. The original reference in
-<code>fetch.txt</code> is removed.</p><p>If the checksum(s) of the downloaded file do(es) not match the checksum(s) listed in the
-payload manifest(s), a <code>Failure</code> will be returned. In this case, the file is not added to the
-payload directory.</p><p>Due to downloading the file, this method may take some time to complete and return. It is
-therefore strongly advised to wrap a call to this method in a <code>Promise</code>/<code>Future</code>, <code>Observable</code>
-or any other desired data structure that deals with latency in a proper way.</p><p>Please note that this change is applied immediately and, since no changes are made to the rest
-of the bag, there is no need to call <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> for this to have full effect.</p></div><dl class="paramcmts block"><dt class="param">pathInData</dt><dd class="cmt"><p>a relative path in <code>bag/data</code> that is listed in the fetch file and where the
-                  file is stored on file system after being downloaded</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, after having downloaded the file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
     </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#replaceFileWithFetchItem" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="replaceFileWithFetchItem(pathInData:java.nio.file.Path,url:java.net.URL):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="replaceFileWithFetchItem(Path,URL):Try[DansV0Bag]"></a>
       <span class="permalink">
@@ -1358,29 +1161,6 @@ of the bag, there is no need to call <a href="../DansBag.html#save():scala.util.
       </span>
       <span class="symbol">
         <span class="name">replaceFileWithFetchItem</span><span class="params">(<span name="pathInData">pathInData: <span class="extype" name="java.nio.file.Path">Path</span></span>, <span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Migrates a file from the payload directory to the fetch file, where it is referenced by the
-given <code>URL</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Migrates a file from the payload directory to the fetch file, where it is referenced by the
-given <code>URL</code>.
-If the resolved path of the original file does not exist in the bag, or if the resolved path is
-outside of the <code>bag/data</code> directory, a <code>Failure</code> is returned.
-The <code>URL</code> is not checked for its resolvability, nor is this method responsible for uploading
-the referenced file to the specific <code>URL</code>.</p><p>Please note that, while the file is removed from the bag immediately, the changes to the
-fetch file will only be applied to the bag on the file system once <a href="../DansBag.html#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.</p></div><dl class="paramcmts block"><dt class="param">pathInData</dt><dd class="cmt"><p>the path in <code>bag/data</code> to the file that is included in the fetch file</p></dd><dt class="param">url</dt><dd class="cmt"><p>the <code>URL</code> through which the file will be resolved in the future</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added reference in the fetch file</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a> → <a href="../DansBag.html" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a></dd></dl></div>
-    </li><li name="nl.knaw.dans.bag.v0.DansV0Bag#replaceFileWithFetchItem" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceFileWithFetchItem(pathInData:nl.knaw.dans.bag.RelativePath,url:java.net.URL):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]"></a><a id="replaceFileWithFetchItem(RelativePath,URL):Try[DansV0Bag]"></a>
-      <span class="permalink">
-      <a href="../../../../../nl/knaw/dans/bag/v0/DansV0Bag.html#replaceFileWithFetchItem(pathInData:nl.knaw.dans.bag.RelativePath,url:java.net.URL):scala.util.Try[nl.knaw.dans.bag.v0.DansV0Bag]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">replaceFileWithFetchItem</span><span class="params">(<span name="pathInData">pathInData: <a href="../index.html#RelativePath=better.files.File=&gt;better.files.File" class="extmbr" name="nl.knaw.dans.bag.RelativePath">RelativePath</a></span>, <span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.v0.DansV0Bag">DansV0Bag</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Migrates a file from the payload directory to the fetch file, where it is referenced by the
