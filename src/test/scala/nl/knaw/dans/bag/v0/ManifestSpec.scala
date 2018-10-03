@@ -16,11 +16,12 @@
 package nl.knaw.dans.bag.v0
 
 import java.io.IOException
-import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Path, Paths }
+import java.nio.file._
 
 import better.files.File
-import nl.knaw.dans.bag.fixtures.{ BagMatchers, Lipsum, TestBags, TestSupportFixture }
+import better.files.File.temporaryFile
 import nl.knaw.dans.bag.{ ChecksumAlgorithm, ImportOption }
+import nl.knaw.dans.bag.fixtures.{ BagMatchers, Lipsum, TestBags, TestSupportFixture }
 
 import scala.language.existentials
 import scala.util.{ Failure, Success, Try }
@@ -45,7 +46,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     })
   }
 
-  def addPayloadFile(addPayloadFile: DansV0Bag => File => Path => Try[DansV0Bag]): Unit = {
+  def addPayloadFile(addPayloadFile: DansV0Bag => (File, Path) => Try[DansV0Bag]): Unit = {
     it should "copy the new file into the bag" in {
       val bag = simpleBagV0()
       val file = testDir / "file.txt" createIfNotExists() writeText lipsum(3)
@@ -54,7 +55,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      addPayloadFile(bag)(file)(relativeDest) shouldBe a[Success[_]]
+      addPayloadFile(bag)(file, relativeDest) shouldBe a[Success[_]]
 
       dest should exist
       dest.contentAsString shouldBe file.contentAsString
@@ -72,7 +73,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
         ChecksumAlgorithm.SHA256,
       )
 
-      inside(addPayloadFile(bag)(file)(relativeDest)) {
+      inside(addPayloadFile(bag)(file, relativeDest)) {
         case Success(resultBag) =>
           resultBag.payloadManifestAlgorithms should contain only(
             ChecksumAlgorithm.SHA1,
@@ -95,7 +96,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addPayloadFile(bag)(file)(relativeDest)) {
+      inside(addPayloadFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message s"pathInData '$dest' is supposed to point to a file that is a child of the bag/data directory"
       }
@@ -111,7 +112,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest should exist
 
-      inside(addPayloadFile(bag)(file)(relativeDest)) {
+      inside(addPayloadFile(bag)(file, relativeDest)) {
         case Failure(e: FileAlreadyExistsException) =>
           e should have message dest.toString
       }
@@ -132,7 +133,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
       val sha1Before = bag.payloadManifests(ChecksumAlgorithm.SHA1)(dest)
       file.sha1 should not be sha1Before
 
-      inside(addPayloadFile(bag)(file)(relativeDest)) {
+      inside(addPayloadFile(bag)(file, relativeDest)) {
         case Failure(e: FileAlreadyExistsException) =>
           e should have message s"$dest: file already present in bag as a fetch file"
 
@@ -147,7 +148,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
   }
 
   "addPayloadFile with InputStream" should behave like addPayloadFile(
-    bag => file => path => file.inputStream()(bag.addPayloadFile(_, path))
+    bag => (file, path) => file.inputStream()(bag.addPayloadFile(_, path))
   )
 
   it should "fail when the given file is a directory" in {
@@ -165,8 +166,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     }
   }
 
-  "addPayloadFile with File" should behave like addPayloadFile(
-    bag => file => bag.addPayloadFile(file, _, ImportOption.COPY))
+  "addPayloadFile with File and COPY" should behave like addPayloadFile(_.addPayloadFile)
 
   it should "recursively add the files and folders in the directory to the bag" in {
     val bag = multipleManifestsBagV0()
@@ -179,7 +179,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     val relativeDest = Paths.get("path/to/newDir")
     val dest = bag.data / relativeDest.toString
 
-    inside(bag.addPayloadFile(newDir, relativeDest, ImportOption.COPY)) {
+    inside(bag.addPayloadFile(newDir, relativeDest)) {
       case Success(resultBag) =>
         val files = Set(file1, file2, file3, file4, file5)
           .map(file => dest / newDir.relativize(file).toString)
@@ -192,6 +192,90 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
             resultBag.payloadManifests(algo)(file) shouldBe file.checksum(algo).toLowerCase
           })
         })
+    }
+  }
+
+  "addPayloadFile with File and ATOMIC_MOVE" should "move the staged file" in {
+    val bag = simpleBagV0()
+    val stagedFile = testDir / "some.file" createFile() writeText "this file is supposed to be moved into the bag"
+    val fileChecksumSha1 = stagedFile.sha1.toLowerCase
+
+    inside(bag.addPayloadFile(stagedFile, Paths.get("new/file"))(ImportOption.ATOMIC_MOVE)) {
+      case Success(resultBag) =>
+        val newFilePath = resultBag.data / "new" / "file"
+
+        stagedFile shouldNot exist
+        newFilePath should exist
+
+        resultBag.payloadManifests.keySet should contain only ChecksumAlgorithm.SHA1
+        resultBag.payloadManifests(ChecksumAlgorithm.SHA1) should contain (newFilePath -> fileChecksumSha1)
+    }
+  }
+
+  it should "fail if the staged file is a directory" in {
+    val bag = simpleBagV0()
+    val stagedDir = (testDir / "some/dir").createDirectories()
+
+    inside(bag.addPayloadFile(stagedDir, Paths.get("do-not-care"))(ImportOption.ATOMIC_MOVE)) {
+      case Failure(e: IllegalArgumentException) =>
+        e should have message s"src cannot be moved, as it is not a regular file: $stagedDir"
+        stagedDir should exist
+    }
+  }
+
+  it should "fail if the destination exists" in {
+    val bag = simpleBagV0()
+    val stagedFile = (testDir / "some.file").createFile()
+
+    inside(bag.addPayloadFile(stagedFile, Paths.get("sub/u"))(ImportOption.ATOMIC_MOVE)) {
+      case Failure(e: FileAlreadyExistsException) =>
+        val expectedPath = bag.data / "sub" / "u"
+
+        e should have message expectedPath.toString()
+        stagedFile should exist
+        expectedPath should exist // already existed
+    }
+  }
+
+  it should "fail if the destination is not inside the bag/data directory" in {
+    val bag = simpleBagV0()
+    val stagedFile = (testDir / "some.file").createFile()
+
+    inside(bag.addPayloadFile(stagedFile, Paths.get("../../sub/u"))(ImportOption.ATOMIC_MOVE)) {
+      case Failure(e: IllegalArgumentException) =>
+        val expectedPath = bag.data / ".." / ".." / "sub" / "u"
+
+        e should have message s"pathInData '$expectedPath' is supposed to point to a file that is a child of the bag/data directory"
+        stagedFile should exist
+        expectedPath shouldNot exist
+    }
+  }
+
+  it should "fail if the destination is present as fetch file" in {
+    val bag = fetchBagV0()
+    val stagedFile = (testDir / "some.file").createFile()
+
+    inside(bag.addPayloadFile(stagedFile, Paths.get("sub/u"))(ImportOption.ATOMIC_MOVE)) {
+      case Failure(e: FileAlreadyExistsException) =>
+        val expectedPath = bag.data / "sub" / "u"
+
+        e should have message s"$expectedPath: file already present in bag as a fetch file"
+        stagedFile should exist
+        expectedPath shouldNot exist // only exists virtually in fetch.txt
+    }
+  }
+
+  it should "fail in case of different providers or mounts" in pendingUntilFixed {
+    val bag = fetchBagV0()
+    // TODO pick another mount than the one for the bag
+    val managedFile = temporaryFile(parent = Some(File("/tmp")))
+    managedFile.apply { stagedFile =>
+      assume(stagedFile.exists)
+      inside(bag.addPayloadFile(stagedFile, Paths.get("new/file"))(ImportOption.ATOMIC_MOVE)) {
+        case Failure(e: AtomicMoveNotSupportedException) =>
+          e should have message "???"
+          stagedFile should exist
+      }
     }
   }
 
@@ -225,7 +309,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     val file = testDir / "a.txt" createIfNotExists (createParents = true) writeText "content of file a"
     val destination = bag.data / "path" / "to" / "file" / "a.txt"
 
-    bag.addPayloadFile(file, Paths.get("path/to/file/a.txt"), ImportOption.COPY) shouldBe a[Success[_]]
+    bag.addPayloadFile(file, Paths.get("path/to/file/a.txt")) shouldBe a[Success[_]]
 
     destination should exist
     bag.payloadManifests(ChecksumAlgorithm.SHA1) should contain key destination
@@ -361,7 +445,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     })
   }
 
-  def addTagFile(addTagFile: DansV0Bag => File => Path => Try[DansV0Bag]): Unit = {
+  def addTagFile(addTagFile: DansV0Bag => (File, Path) => Try[DansV0Bag]): Unit = {
     it should "copy the new file into the bag" in {
       val bag = simpleBagV0()
       val file = testDir / "file.txt" createIfNotExists() writeText lipsum(3)
@@ -370,7 +454,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      addTagFile(bag)(file)(relativeDest) shouldBe a[Success[_]]
+      addTagFile(bag)(file, relativeDest) shouldBe a[Success[_]]
 
       dest should exist
       dest.contentAsString shouldBe file.contentAsString
@@ -388,7 +472,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
         ChecksumAlgorithm.SHA256,
       )
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Success(resultBag) =>
           resultBag.tagManifestAlgorithms should contain only(
             ChecksumAlgorithm.SHA1,
@@ -411,7 +495,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message s"cannot add a tag file like '$dest' to the bag/data directory"
       }
@@ -427,7 +511,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message s"cannot add a tag file like '$dest' to a place outside the bag directory"
       }
@@ -444,7 +528,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
       dest should exist
       val oldContent = dest.contentAsString
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: FileAlreadyExistsException) =>
           e should have message dest.toString
       }
@@ -463,7 +547,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file ,relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message "tag file 'bag-info.txt' is controlled by the library itself; you cannot add a file to this location"
       }
@@ -481,7 +565,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message "tag file 'bagit.txt' is controlled by the library itself; you cannot add a file to this location"
       }
@@ -499,7 +583,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message "tag file 'fetch.txt' is controlled by the library itself; you cannot add a file to this location"
       }
@@ -517,7 +601,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message "manifest files are controlled by the library itself; you cannot add a file to this location"
       }
@@ -535,7 +619,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
       dest shouldNot exist
 
-      inside(addTagFile(bag)(file)(relativeDest)) {
+      inside(addTagFile(bag)(file, relativeDest)) {
         case Failure(e: IllegalArgumentException) =>
           e should have message "tagmanifest files are controlled by the library itself; you cannot add a file to this location"
       }
@@ -545,7 +629,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
   }
 
   "addTagFile with InputStream" should behave like addTagFile(
-    bag => file => relativeDest => file.inputStream()(bag.addTagFile(_, relativeDest))
+    bag => (file, relativeDest) => file.inputStream()(bag.addTagFile(_, relativeDest))
   )
 
   it should "fail when the given file is a directory" in {
@@ -563,7 +647,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     }
   }
 
-  "addTagFile with File" should behave like addTagFile(bag => file => bag.addTagFile(file, _))
+  "addTagFile with File" should behave like addTagFile(_.addTagFile)
 
   it should "recursively add the files and folders in the directory to the bag" in {
     val bag = multipleManifestsBagV0()

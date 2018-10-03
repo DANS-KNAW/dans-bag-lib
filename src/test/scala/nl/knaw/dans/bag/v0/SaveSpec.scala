@@ -23,7 +23,7 @@ import gov.loc.repository.bagit.conformance.{ BagLinter, BagitWarning }
 import gov.loc.repository.bagit.domain.Version
 import gov.loc.repository.bagit.verify.BagVerifier
 import nl.knaw.dans.bag.fixtures._
-import nl.knaw.dans.bag.{ ChecksumAlgorithm, FetchItem, ImportOption }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, FetchItem }
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.scalatest.tagobjects.Retryable
@@ -92,7 +92,7 @@ class SaveSpec extends TestSupportFixture
     // changes + save
     val newFile = testDir / "xxx.txt" createIfNotExists (createParents = true) writeText lipsum(5)
     val uuid = s"urn:uuid:${ UUID.randomUUID() }"
-    bag.addPayloadFile(newFile, Paths.get("abc.txt"), ImportOption.COPY)
+    bag.addPayloadFile(newFile, Paths.get("abc.txt"))
       .map(_.addBagInfo("Is-Version-Of", uuid))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
@@ -374,7 +374,7 @@ class SaveSpec extends TestSupportFixture
 
     // changes + save
     val newFile = testDir / "xxx.txt" createIfNotExists (createParents = true) writeText lipsum(5)
-    bag.addPayloadFile(newFile, Paths.get("abc.txt"), ImportOption.COPY)
+    bag.addPayloadFile(newFile, Paths.get("abc.txt"))
       .flatMap(_.removePayloadFile(Paths.get("y")))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
@@ -414,7 +414,7 @@ class SaveSpec extends TestSupportFixture
     // changes + save
     val newFile = testDir / "xxx.txt" createIfNotExists (createParents = true) writeText lipsum(5)
     bag.addPayloadManifestAlgorithm(ChecksumAlgorithm.SHA256)
-      .flatMap(_.addPayloadFile(newFile, Paths.get("abc.txt"), ImportOption.COPY))
+      .flatMap(_.addPayloadFile(newFile, Paths.get("abc.txt")))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
     // expected results
@@ -541,7 +541,7 @@ class SaveSpec extends TestSupportFixture
     )
 
     // changes + save
-    bag.addPayloadFile(newFileSrc, bag.data.relativize(newFile), ImportOption.COPY)
+    bag.addPayloadFile(newFileSrc, bag.data.relativize(newFile))
       .flatMap(_.save()) shouldBe a[Success[_]]
 
     // expected results

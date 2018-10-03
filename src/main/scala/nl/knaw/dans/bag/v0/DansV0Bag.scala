@@ -19,7 +19,7 @@ import java.io.{ IOException, InputStream }
 import java.net.{ HttpURLConnection, URI, URL, URLConnection }
 import java.nio.charset.Charset
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
-import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Path, Files => jFiles }
+import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Path, StandardCopyOption, Files => jFiles }
 import java.util.{ UUID, Set => jSet }
 
 import better.files.{ CloseableOps, Disposable, File, Files, ManagedResource }
@@ -479,38 +479,13 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   /**
    * @inheritdoc
    */
-  override def addPayloadFile(src: File, pathInData: Path, importOption: ImportOption): Try[DansV0Bag] = Try {
+  override def addPayloadFile(src: File, pathInData: Path)
+                             (implicit importOption: ImportOption): Try[DansV0Bag] = Try {
     importOption match {
       case ImportOption.COPY => addFile(src, pathInData)(_.addPayloadFile)
       case ImportOption.MOVE => movePayloadFile(src, pathInData, atomicMove = false)
       case ImportOption.ATOMIC_MOVE => movePayloadFile(src, pathInData, atomicMove = true)
     }
-
-    this
-  }
-
-  /**
-   * @inheritdoc
-   */
-  @deprecated
-  override def addStagedPayloadFile(src: File, pathInData: Path): Try[DansV0Bag] = Try {
-    if (!src.isRegularFile)
-      throw new IllegalArgumentException(s"StagedPayloadFile is not a regular file: $src")
-
-    val destination = data / pathInData.toString
-    val provider = src.path.getFileSystem.provider()
-    if (provider != destination.path.getFileSystem.provider())
-      throw new IOException(s"Different providers, can't move [$src] to [$destination]")
-    if (!data.isParentOf(destination))
-      throw new IllegalArgumentException(s"pathInData '$destination' is supposed to point to a file that is a child of the bag/data directory")
-    if (destination.exists)
-      throw new FileAlreadyExistsException(destination.toString)
-    if (fetchFiles.map(_.file) contains destination)
-      throw new FileAlreadyExistsException(destination.toString(), null, "file already present in bag as a fetch file")
-
-    destination.parent.createDirectories()
-    provider.move(src.path, destination, ATOMIC_MOVE) // avoid implicit copy/delete
-    addCheckSum(destination, locBag.getPayLoadManifests)
 
     this
   }
@@ -843,7 +818,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     dest.parent.createDirectories()
     if (atomicMove)
-      srcProvider.move(src.path, dest, ATOMIC_MOVE) // avoid implicit copy/delete
+      srcProvider.move(src.path, dest, StandardCopyOption.ATOMIC_MOVE) // avoid implicit copy/delete
     else
       srcProvider.move(src.path, dest) // optional implicit copy/delete if src and dest are on different providers
     addCheckSum(dest, locBag.getPayLoadManifests)
