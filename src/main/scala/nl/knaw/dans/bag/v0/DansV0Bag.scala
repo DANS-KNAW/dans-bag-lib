@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.bag.v0
 
-import java.io.{ IOException, InputStream }
+import java.io.InputStream
 import java.net.{ HttpURLConnection, URI, URL, URLConnection }
 import java.nio.charset.Charset
 import java.nio.file.{ AtomicMoveNotSupportedException, FileAlreadyExistsException, NoSuchFileException, Path, StandardCopyOption, Files => jFiles }
