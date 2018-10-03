@@ -17,11 +17,11 @@ package nl.knaw.dans.bag.v0
 
 import java.io.IOException
 import java.nio.file._
+import java.nio.file.spi.FileSystemProvider
 
 import better.files.File
-import better.files.File.temporaryFile
-import nl.knaw.dans.bag.{ ChecksumAlgorithm, ImportOption }
 import nl.knaw.dans.bag.fixtures.{ BagMatchers, Lipsum, TestBags, TestSupportFixture }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, ImportOption }
 
 import scala.language.existentials
 import scala.util.{ Failure, Success, Try }
@@ -265,17 +265,21 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     }
   }
 
-  it should "fail in case of different providers or mounts" in pendingUntilFixed {
+  it should "fail in case of different providers or mounts" in {
     val bag = fetchBagV0()
-    // TODO pick another mount than the one for the bag
-    val managedFile = temporaryFile(parent = Some(File("/tmp")))
-    managedFile.apply { stagedFile =>
-      assume(stagedFile.exists)
-      inside(bag.addPayloadFile(stagedFile, Paths.get("new/file"))(ImportOption.ATOMIC_MOVE)) {
-        case Failure(e: AtomicMoveNotSupportedException) =>
-          e should have message "???"
-          stagedFile should exist
-      }
+    val mockedSrcPath = mock[Path]
+    val mockedFileSystem = mock[FileSystem]
+    val mockedFileSystemProvider = mock[FileSystemProvider]
+
+    mockedSrcPath.toAbsolutePath _ expects () returning mockedSrcPath
+    mockedSrcPath.normalize _ expects () returning mockedSrcPath
+    mockedSrcPath.getFileSystem _ expects () returning mockedFileSystem
+    mockedFileSystem.provider _ expects () returning mockedFileSystemProvider
+
+    inside(bag.addPayloadFile(File(mockedSrcPath), Paths.get("new/file"))(ImportOption.ATOMIC_MOVE)) {
+      case Failure(e: AtomicMoveNotSupportedException) =>
+        val expectedPath = bag.data / "new" / "file"
+        e should have message s"$mockedSrcPath -> $expectedPath: Different providers, atomic move cannot take place"
     }
   }
 

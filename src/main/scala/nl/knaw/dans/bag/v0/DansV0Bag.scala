@@ -18,8 +18,7 @@ package nl.knaw.dans.bag.v0
 import java.io.{ IOException, InputStream }
 import java.net.{ HttpURLConnection, URI, URL, URLConnection }
 import java.nio.charset.Charset
-import java.nio.file.StandardCopyOption.ATOMIC_MOVE
-import java.nio.file.{ FileAlreadyExistsException, NoSuchFileException, Path, StandardCopyOption, Files => jFiles }
+import java.nio.file.{ AtomicMoveNotSupportedException, FileAlreadyExistsException, NoSuchFileException, Path, StandardCopyOption, Files => jFiles }
 import java.util.{ UUID, Set => jSet }
 
 import better.files.{ CloseableOps, Disposable, File, Files, ManagedResource }
@@ -802,13 +801,13 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   }
 
   private def movePayloadFile(src: File, pathInData: Path, atomicMove: Boolean): Unit = {
-    if (!src.isRegularFile)
-      throw new IllegalArgumentException(s"src cannot be moved, as it is not a regular file: $src")
-
     val dest = data / pathInData.toString
     val srcProvider = src.fileSystem.provider()
+
     if (atomicMove && srcProvider != dest.fileSystem.provider())
-      throw new IOException(s"Different providers, atomic move from $src to $dest cannot take place")
+      throw new AtomicMoveNotSupportedException(src.toString(), dest.toString(), s"Different providers, atomic move cannot take place")
+    if (!src.isRegularFile)
+      throw new IllegalArgumentException(s"src cannot be moved, as it is not a regular file: $src")
     if (!data.isParentOf(dest))
       throw new IllegalArgumentException(s"pathInData '$dest' is supposed to point to a file that is a child of the bag/data directory")
     if (dest.exists)
