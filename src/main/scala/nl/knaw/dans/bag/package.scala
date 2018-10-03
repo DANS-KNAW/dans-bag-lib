@@ -23,8 +23,6 @@ import scala.language.implicitConversions
 
 package object bag {
 
-  type RelativePath = File => File
-
   implicit def betterFileToPath(file: File): Path = file.path
 
   object ImportOption extends Enumeration {
