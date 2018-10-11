@@ -458,19 +458,15 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
    * @inheritdoc
    */
   override def addPayloadFile(inputStream: InputStream, pathInData: Path): Try[DansV0Bag] = Try {
-    val file: File = data / pathInData.toString
+    val dest: File = data / pathInData.toString
+    mustNotExistInBag(dest)
+    mustBeChildOfBagData(dest)
+    mustNotBeFetchFile(dest)
 
-    if (file.exists)
-      throw new FileAlreadyExistsException(file.toString)
-    if (!data.isParentOf(file))
-      throw new IllegalArgumentException(s"pathInData '$file' is supposed to point to a file that is a child of the bag/data directory")
-    if (fetchFiles.map(_.file) contains file)
-      throw new FileAlreadyExistsException(file.toString(), null, "file already present in bag as a fetch file")
+    dest.parent.createDirectories()
 
-    file.parent.createDirectories()
-
-    jFiles.copy(inputStream, file)
-    addCheckSum(file, locBag.getPayLoadManifests)
+    jFiles.copy(inputStream, dest)
+    addCheckSum(dest, locBag.getPayLoadManifests)
 
     this
   }
@@ -480,6 +476,10 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
    */
   override def addPayloadFile(src: File, pathInData: Path)
                              (implicit importOption: ImportOption): Try[DansV0Bag] = Try {
+    val dest = data / pathInData.toString
+    mustNotExistInBag(dest)
+    mustBeChildOfBagData(dest)
+    mustNotBeFetchFile(dest)
     importOption match {
       case ImportOption.COPY => addFile(src, pathInData)(_.addPayloadFile)
       case ImportOption.MOVE => movePayloadFile(src, pathInData, atomicMove = false)
@@ -487,6 +487,21 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     }
 
     this
+  }
+
+  private def mustNotExistInBag(dest: File): Unit = {
+    if (dest.exists)
+      throw new FileAlreadyExistsException(dest.toString)
+  }
+
+  private def mustNotBeFetchFile(dest: File): Unit = {
+    if (fetchFiles.map(_.file) contains dest)
+      throw new FileAlreadyExistsException(dest.toString(), null, "file already present in bag as a fetch file")
+  }
+
+  private def mustBeChildOfBagData(dest: File): Unit = {
+    if (!data.isParentOf(dest))
+      throw new IllegalArgumentException(s"pathInData '$dest' is supposed to point to a file that is a child of the bag/data directory")
   }
 
   /**
@@ -497,8 +512,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
 
     if (file.notExists)
       throw new NoSuchFileException(file.toString)
-    if (!data.isParentOf(file))
-      throw new IllegalArgumentException(s"pathInData '$file' is supposed to point to a file that is a child of the bag/data directory")
+    mustBeChildOfBagData(file)
     if (file.isDirectory)
       throw new IllegalArgumentException(s"cannot remove directory '$file'; you can only remove files")
 
@@ -519,8 +533,7 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   override def addTagFile(inputStream: InputStream, pathInBag: Path): Try[DansV0Bag] = Try {
     val file = baseDir / pathInBag.toString
 
-    if (file.exists)
-      throw new FileAlreadyExistsException(file.toString)
+    mustNotExistInBag(file)
     if (data.isParentOf(file))
       throw new IllegalArgumentException(s"cannot add a tag file like '$file' to the bag/data directory")
     if (!baseDir.isParentOf(file))
@@ -803,17 +816,10 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   private def movePayloadFile(src: File, pathInData: Path, atomicMove: Boolean): Unit = {
     val dest = data / pathInData.toString
     val srcProvider = src.fileSystem.provider()
-
     if (atomicMove && srcProvider != dest.fileSystem.provider())
       throw new AtomicMoveNotSupportedException(src.toString(), dest.toString(), s"Different providers, atomic move cannot take place")
     if (!src.isRegularFile)
       throw new IllegalArgumentException(s"src cannot be moved, as it is not a regular file: $src")
-    if (!data.isParentOf(dest))
-      throw new IllegalArgumentException(s"pathInData '$dest' is supposed to point to a file that is a child of the bag/data directory")
-    if (dest.exists)
-      throw new FileAlreadyExistsException(dest.toString)
-    if (fetchFiles.map(_.file) contains dest)
-      throw new FileAlreadyExistsException(dest.toString(), null, "file already present in bag as a fetch file")
 
     dest.parent.createDirectories()
     if (atomicMove)
