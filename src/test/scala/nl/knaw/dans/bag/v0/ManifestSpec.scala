@@ -269,14 +269,22 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     }
   }
 
-  it should "fail if the staged file is a directory" in {
+  it should "move a directory with ATOMIC_MOVE" in {
     val bag = simpleBagV0()
-    val stagedDir = (testDir / "some/dir").createDirectories()
+    val stagedDir = (testDir / "some-dir").createDirectories()
+    val stagedFile = stagedDir / "some.txt"
+    stagedFile createFile() writeText "this file is supposed to be moved into the bag"
+    val fileChecksumSha1 = stagedFile.sha1.toLowerCase
 
-    inside(bag.addPayloadFile(stagedDir, Paths.get("do-not-care"))(ATOMIC_MOVE)) {
-      case Failure(e: IllegalArgumentException) =>
-        e should have message s"src cannot be moved, as it is not a regular file: $stagedDir"
-        stagedDir should exist
+    inside(bag.addPayloadFile(stagedDir, Paths.get("sub2"))(ATOMIC_MOVE)) {
+      case Success(resultBag) =>
+        val newFilePath = resultBag.data / "sub2" / "some.txt"
+
+        stagedDir shouldNot exist
+        newFilePath should exist
+
+        resultBag.payloadManifests.keySet should contain only ChecksumAlgorithm.SHA1
+        resultBag.payloadManifests(ChecksumAlgorithm.SHA1) should contain(newFilePath -> fileChecksumSha1)
     }
   }
 

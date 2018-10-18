@@ -818,15 +818,23 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
     val srcProvider = src.fileSystem.provider()
     if (atomicMove && srcProvider != dest.fileSystem.provider())
       throw new AtomicMoveNotSupportedException(src.toString(), dest.toString(), s"Different providers, atomic move cannot take place")
-    if (!src.isRegularFile)
-      throw new IllegalArgumentException(s"src cannot be moved, as it is not a regular file: $src")
+    if (!atomicMove && !src.isRegularFile)
+      throw new IllegalArgumentException(s"src cannot be moved non-atomically, as it is not a regular file: $src")
 
     dest.parent.createDirectories()
-    if (atomicMove)
-      srcProvider.move(src.path, dest, StandardCopyOption.ATOMIC_MOVE) // avoid implicit copy/delete
-    else
-      srcProvider.move(src.path, dest) // optional implicit copy/delete if src and dest are on different providers
-    addCheckSum(dest, locBag.getPayLoadManifests)
+    if (atomicMove) {
+      // avoid implicit copy/delete
+      srcProvider.move(src.path, dest, StandardCopyOption.ATOMIC_MOVE)
+      if (src.isRegularFile) addCheckSum(src, locBag.getPayLoadManifests)
+      else dest.walk().withFilter(!_.isDirectory).foreach(
+        addCheckSum(_, locBag.getPayLoadManifests)
+      )
+    }
+    else {
+      // implicit copy/delete if src and dest are on different providers or mounts
+      srcProvider.move(src.path, dest)
+      addCheckSum(dest, locBag.getPayLoadManifests)
+    }
   }
 
   private def removeFile(file: File, haltDeleteAt: File): Unit = {

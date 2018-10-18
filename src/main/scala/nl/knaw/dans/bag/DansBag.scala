@@ -462,8 +462,7 @@ trait DansBag {
    * will move the file if both source and destination are on the same mount, but fail otherwise.
    *
    * When `src` is a directory, each file in that directory will be copied into the payload directory.
-   * If either `MOVE` or `ATOMIC_MOVE` is selected for `importOption`, importing a directory structure
-   * is not allowed.
+   * If `MOVE` is selected for `importOption`, importing a directory structure is not allowed.
    *
    * Please note that fetch files are also considered part of the payload files. Therefore it is not
    * allowed to add a payload file using this method that is already declared in `fetch.txt`.
