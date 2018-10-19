@@ -29,8 +29,8 @@ import gov.loc.repository.bagit.util.PathUtils
 import gov.loc.repository.bagit.verify.{ BagVerifier, FileCountAndTotalSizeVistor }
 import gov.loc.repository.bagit.writer.{ BagitFileWriter, FetchWriter, ManifestWriter, MetadataWriter }
 import nl.knaw.dans.bag.ChecksumAlgorithm.{ ChecksumAlgorithm, locDeconverter }
-import nl.knaw.dans.bag.ImportOption.ImportOption
-import nl.knaw.dans.bag.{ ChecksumAlgorithm, DansBag, FetchItem, ImportOption, betterFileToPath }
+import nl.knaw.dans.bag.ImportOption.{ ATOMIC_MOVE, COPY, ImportOption, MOVE }
+import nl.knaw.dans.bag.{ ChecksumAlgorithm, DansBag, FetchItem, betterFileToPath }
 import org.joda.time.DateTime
 import org.joda.time.format.{ DateTimeFormatter, ISODateTimeFormat }
 
@@ -477,13 +477,20 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   override def addPayloadFile(src: File, pathInData: Path)
                              (implicit importOption: ImportOption): Try[DansV0Bag] = Try {
     val dest = data / pathInData.toString
-    mustNotExistInBag(dest)
-    mustBeChildOfBagData(dest)
+    if (dest == data && importOption == COPY) {
+      // allow to copy a directory to an empty data directory
+      if (!src.isDirectory || dest.list.nonEmpty)
+        throw new FileAlreadyExistsException(dest.toString)
+    }
+    else {
+      mustNotExistInBag(dest)
+      mustBeChildOfBagData(dest)
+    }
     mustNotBeFetchFile(dest)
     importOption match {
-      case ImportOption.COPY => addFile(src, pathInData)(_.addPayloadFile)
-      case ImportOption.MOVE => movePayloadFile(src, pathInData, atomicMove = false)
-      case ImportOption.ATOMIC_MOVE => movePayloadFile(src, pathInData, atomicMove = true)
+      case COPY => addFile(src, pathInData)(_.addPayloadFile)
+      case MOVE => movePayloadFile(src, pathInData, atomicMove = false)
+      case ATOMIC_MOVE => movePayloadFile(src, pathInData, atomicMove = true)
     }
 
     this
