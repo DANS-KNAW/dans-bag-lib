@@ -16,8 +16,8 @@
 package nl.knaw.dans.bag.v0
 
 import java.io.{ ByteArrayInputStream, IOException }
-import java.nio.file._
 import java.nio.file.spi.FileSystemProvider
+import java.nio.file.{ FileAlreadyExistsException, _ }
 
 import better.files.File
 import nl.knaw.dans.bag.ChecksumAlgorithm
@@ -269,7 +269,7 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
     }
   }
 
-  it should "move a directory with ATOMIC_MOVE" in {
+  "addPayloadFile" should "move a directory with ATOMIC_MOVE" in {
     val bag = simpleBagV0()
     val stagedDir = (testDir / "some-dir").createDirectories()
     val stagedFile = stagedDir / "some.txt"
@@ -285,6 +285,45 @@ class ManifestSpec extends TestSupportFixture with TestBags with BagMatchers wit
 
         resultBag.payloadManifests.keySet should contain only ChecksumAlgorithm.SHA1
         resultBag.payloadManifests(ChecksumAlgorithm.SHA1) should contain(newFilePath -> fileChecksumSha1)
+    }
+  }
+
+  it should "copy a directory to an empty data dir" in {
+    val bag = DansV0Bag.empty(testDir / "bag")
+    val stagedDir = (testDir / "some-dir").createDirectories()
+    val stagedFile = stagedDir / "some.txt" createFile() writeText
+      "this is content for a file that is supposed to be moved into the bag"
+    val fileChecksumSha1 = stagedFile.sha1.toLowerCase
+
+    inside(bag.addPayloadFile(stagedDir, Paths.get("."))) {
+      case Success(resultBag) =>
+        val newFilePath = resultBag.data / "some.txt"
+
+        stagedDir should exist
+        newFilePath should exist
+
+        resultBag.payloadManifests.keySet should contain only ChecksumAlgorithm.SHA1
+        resultBag.payloadManifests(ChecksumAlgorithm.SHA1) should contain(newFilePath -> fileChecksumSha1)
+    }
+  }
+
+  it should "not copy a directory to a data dir with content" in {
+    val bag = simpleBagV0()
+    val stagedDir = (testDir / "some-dir").createDirectories()
+
+    bag.addPayloadFile(stagedDir, Paths.get(".")) should matchPattern {
+      case Failure(e: IllegalArgumentException) if e.getMessage ==
+        "The data directory must be empty to receive content of a directory." =>
+    }
+  }
+
+  it should "not copy a file to the data dir" in {
+    val bag = DansV0Bag.empty(testDir / "bag")
+    val stagedDir = (testDir / "some-file").createFile()
+
+    bag.addPayloadFile(stagedDir, Paths.get(".")) should matchPattern {
+      case Failure(e: IllegalArgumentException) if e.getMessage ==
+        s"The data directory can only receive content of a directory, got: $stagedDir" =>
     }
   }
 

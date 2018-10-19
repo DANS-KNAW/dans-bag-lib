@@ -477,10 +477,12 @@ class DansV0Bag private(private[v0] val locBag: LocBag) extends DansBag {
   override def addPayloadFile(src: File, pathInData: Path)
                              (implicit importOption: ImportOption): Try[DansV0Bag] = Try {
     val dest = data / pathInData.toString
-    if (dest == data && importOption == COPY) {
+    if (dest == data && importOption == COPY) { // exception to the else branch
       // allow to copy the content of a directory to the root of an empty data directory
-      if (!src.isDirectory || dest.list.nonEmpty)
-        throw new FileAlreadyExistsException(dest.toString)
+      if (data.nonEmpty)
+        throw new IllegalArgumentException("The data directory must be empty to receive content of a directory.")
+      if (!src.isDirectory)
+        throw new IllegalArgumentException(s"The data directory can only receive content of a directory, got: $src")
     }
     else {
       mustNotExistInBag(dest)
