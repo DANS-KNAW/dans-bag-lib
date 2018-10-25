@@ -181,6 +181,12 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="package$$ImportOption$.html" title=""></a>
+                        <a href="package$$ImportOption$.html" title="">
+                          ImportOption
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="SupportedVersions$.html" title=""></a>
                         <a href="SupportedVersions$.html" title="">
                           SupportedVersions
@@ -317,9 +323,9 @@ that deals with latency in a proper way.</p><p>Please note that this will only b
                <ol><li class="cmt"><p></p><pre>bag.addFetchItem(url, Paths.get(<span class="lit">"path/to/some/file.txt"</span>))</pre></li></ol>
             </div></dl></div>
     </li><li name="nl.knaw.dans.bag.DansBag#addPayloadFile" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="addPayloadFile(src:better.files.File,pathInData:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.DansBag]"></a><a id="addPayloadFile(File,Path):Try[DansBag]"></a>
+      <a id="addPayloadFile(src:better.files.File,pathInData:java.nio.file.Path)(implicitimportOption:nl.knaw.dans.bag.ImportOption.ImportOption):scala.util.Try[nl.knaw.dans.bag.DansBag]"></a><a id="addPayloadFile(File,Path)(ImportOption):Try[DansBag]"></a>
       <span class="permalink">
-      <a href="../../../../nl/knaw/dans/bag/DansBag.html#addPayloadFile(src:better.files.File,pathInData:java.nio.file.Path):scala.util.Try[nl.knaw.dans.bag.DansBag]" title="Permalink">
+      <a href="../../../../nl/knaw/dans/bag/DansBag.html#addPayloadFile(src:better.files.File,pathInData:java.nio.file.Path)(implicitimportOption:nl.knaw.dans.bag.ImportOption.ImportOption):scala.util.Try[nl.knaw.dans.bag.DansBag]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -328,17 +334,21 @@ that deals with latency in a proper way.</p><p>Please note that this will only b
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addPayloadFile</span><span class="params">(<span name="src">src: <span class="extype" name="better.files.File">File</span></span>, <span name="pathInData">pathInData: <span class="extype" name="java.nio.file.Path">Path</span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a>]</span>
+        <span class="name">addPayloadFile</span><span class="params">(<span name="src">src: <span class="extype" name="better.files.File">File</span></span>, <span name="pathInData">pathInData: <span class="extype" name="java.nio.file.Path">Path</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="importOption">importOption: <a href="package$$ImportOption$.html#ImportOption=nl.knaw.dans.bag.ImportOption.Value" class="extmbr" name="nl.knaw.dans.bag.ImportOption.ImportOption">ImportOption</a> = <span class="symbol"><span class="name"><a href="package$$ImportOption$.html">ImportOption.COPY</a></span></span></span>)</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<a href="" class="extype" name="nl.knaw.dans.bag.DansBag">DansBag</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Add a payload file to the bag at the position indicated by the path relative to the <code>bag/data</code>
 directory.</p><div class="fullcomment"><div class="comment cmt"><p>Add a payload file to the bag at the position indicated by the path relative to the <code>bag/data</code>
 directory. If the resolved destination of this new file already exists within the bag, or if
 the resolved destination is outside of the <code>bag/data</code> directory, this method will return a
-<code>scala.util.Failure</code>. This method also adds the checksum of the new file to all payload manifests.</p><p>When <code>src</code> is a directory, each file will in that directory will be copied into the payload directory.</p><p>Please note that fetch files are also considered part of the payload files. Therefore it is not
+<code>scala.util.Failure</code>. This method also adds the checksum of the new file to all payload manifests.</p><p>The way of adding the payload file is determined by the implicit parameter <code>importOption</code>. By
+default this is set to <code>COPY</code>. If set to <code>MOVE</code>, it will move the file if both source and
+destination are on the same mount, but will copy/delete otherwise. If set to <code>ATOMIC_MOVE</code>, it
+will move the file if both source and destination are on the same mount, but fail otherwise.</p><p>When <code>src</code> is a directory, each file in that directory will be copied into the payload directory.
+If <code>MOVE</code> is selected for <code>importOption</code>, importing a directory structure is not allowed.</p><p>Please note that fetch files are also considered part of the payload files. Therefore it is not
 allowed to add a payload file using this method that is already declared in <code>fetch.txt</code>.</p><p>Please note that, while the new file is added to the bag immediately, the changes to the
 payload manifests will only be applied to the bag on the file system once <a href="#save():scala.util.Try[Unit]" class="extmbr" name="nl.knaw.dans.bag.DansBag#save">DansBag#save</a> is called.
-</p></div><dl class="paramcmts block"><dt class="param">src</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is being placed</p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new payload file</p></dd></dl><dl class="attributes block"> <div class="block">Example:
+</p></div><dl class="paramcmts block"><dt class="param">src</dt><dd class="cmt"><p>the source of the new file to be added to the bag</p></dd><dt class="param">pathInData</dt><dd class="cmt"><p>the path relative to the <code>bag/data</code> directory where the new file is being placed</p></dd><dt class="param">importOption</dt><dd class="cmt"><p>the method of adding the payload file, either <code>COPY</code>, <code>MOVE</code> or <code>ATOMIC_MOVE</code></p></dd><dt>returns</dt><dd class="cmt"><p>this bag, with the added checksums of the new payload file</p></dd></dl><dl class="attributes block"> <div class="block">Example:
                <ol><li class="cmt"><p></p><pre><span class="cmt">// add a single file</span>
 bag.addPayloadFile(srcFile, Paths.get(<span class="lit">"path/to/some/file.txt"</span>))
 
